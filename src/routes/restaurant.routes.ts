@@ -1,13 +1,10 @@
-import { createRestaurant } from "@controllers/restaurant-controllers/crud/create-restaurant"
-import { deleteRestaurant } from "@controllers/restaurant-controllers/crud/delete-restaurant"
-import { getAllRestaurants } from "@controllers/restaurant-controllers/crud/get-all-restaurants"
-import { updateRestaurant } from "@controllers/restaurant-controllers/crud/update-restaurant"
-import { DashboardUserRole } from "@models/user-role.enum"
+import { createRestaurant } from "@controllers/restaurant-controllers/crud/create-restaurant.controller"
+import { deleteRestaurant } from "@controllers/restaurant-controllers/crud/delete-restaurant.controller"
+import { getAllRestaurants } from "@controllers/restaurant-controllers/crud/get-all-restaurants.controller"
+import { updateRestaurant } from "@controllers/restaurant-controllers/crud/update-restaurant.controller"
+import { UserRole } from "@models/user-role.enum"
 import express, { NextFunction, Request, Response } from "express"
-import {
-  authenticate,
-  authorizeDashboardUser
-} from "../middlewares/auth.middleware"
+import { authenticate, authorizeUser } from "../middlewares/auth.middleware"
 
 const router = express.Router()
 
@@ -18,10 +15,7 @@ router.post(
     authenticate(req, res, next)
   },
   (req: Request, res: Response, next: NextFunction) => {
-    authorizeDashboardUser([
-      DashboardUserRole.SUPER_ADMIN,
-      DashboardUserRole.AUDITOR
-    ])(req, res, next)
+    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR])(req, res, next)
   },
   createRestaurant
 )
@@ -33,10 +27,11 @@ router.get(
     authenticate(req, res, next)
   },
   (req: Request, res: Response, next: NextFunction) => {
-    authorizeDashboardUser([
-      DashboardUserRole.SUPER_ADMIN,
-      DashboardUserRole.AUDITOR
-    ])(req, res, next)
+    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+      req,
+      res,
+      next
+    )
   },
   getAllRestaurants
 )
@@ -48,10 +43,7 @@ router.put(
     authenticate(req, res, next)
   },
   (req: Request, res: Response, next: NextFunction) => {
-    authorizeDashboardUser([
-      DashboardUserRole.SUPER_ADMIN,
-      DashboardUserRole.AUDITOR
-    ])(req, res, next)
+    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR])(req, res, next)
   },
   (req: Request, res: Response, next: NextFunction) => {
     updateRestaurant(req, res)
@@ -65,10 +57,7 @@ router.delete(
     authenticate(req, res, next)
   },
   (req: Request, res: Response, next: NextFunction) => {
-    authorizeDashboardUser([
-      DashboardUserRole.SUPER_ADMIN,
-      DashboardUserRole.AUDITOR
-    ])(req, res, next)
+    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR])(req, res, next)
   },
   (req: Request, res: Response, next: NextFunction) => {
     deleteRestaurant(req, res)

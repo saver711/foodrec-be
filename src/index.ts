@@ -1,14 +1,16 @@
 // src/index.ts
+import connectDB from "@utils/db"
 import dotenv from "dotenv"
 import express from "express"
-import connectDB from "@utils/db"
 // ROUTES
-import bloggerRoutes from "@routes/blogger.routes"
-import mealRoutes from "@routes/meal.routes"
-import restaurantRoutes from "@routes/restaurant.routes"
-import dashboardUserRoutes from "@routes/dashboard-user-management.routes"
 import appUserRoutes from "@routes/app-user-management.routes"
+import bloggerRoutes from "@routes/blogger.routes"
+import categoryRoutes from "@routes/category.routes"
+import dashboardUserRoutes from "@routes/dashboard-user-management.routes"
+import mealRoutes from "@routes/meal.routes"
+import recommendationRoutes from "@routes/recommendation.routes"
 import refreshTokenRoutes from "@routes/refresh-token.route"
+import restaurantRoutes from "@routes/restaurant.routes"
 dotenv.config()
 
 const app = express()
@@ -35,6 +37,12 @@ app.use("/api/meals", mealRoutes)
 
 // restaurant routes
 app.use("/api/restaurants", restaurantRoutes)
+
+// recommendation routes
+app.use("/api/recommendations", recommendationRoutes)
+
+// Category routes
+app.use("/api/categories", categoryRoutes)
 
 // Database connection
 connectDB()

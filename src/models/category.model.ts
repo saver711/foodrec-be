@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose"
+import mongoose, { Document, Schema } from "mongoose"
 
 export interface ICategory extends Document {
   name: string
@@ -6,7 +6,7 @@ export interface ICategory extends Document {
 }
 
 const CategorySchema: Schema = new Schema({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   meals: [{ type: Schema.Types.ObjectId, ref: "Meal" }] // Many-to-many relation with meals
 })
 

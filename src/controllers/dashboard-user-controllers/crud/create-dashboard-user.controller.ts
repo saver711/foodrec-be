@@ -1,6 +1,6 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import DashboardUser from "@models/dashboard-user.model"
-import { UserType } from "@models/user-type.eum"
+import { UserType } from "@models/user-type.enum"
 import {
   generateAccessToken,
   generateRefreshToken
@@ -47,12 +47,10 @@ export const createDashboardUser = async (
       userWithoutPassword.role,
       UserType.DashboardUser
     )
-    res
-      .status(201)
-      .json({
-        message: "User created successfully",
-        data: { ...userWithoutPassword, accessToken, refreshToken }
-      })
+    res.status(201).json({
+      message: "User created successfully",
+      data: { ...userWithoutPassword, accessToken, refreshToken }
+    })
   } catch (error) {
     res.status(500).json({ message: "Server error" })
   }

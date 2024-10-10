@@ -1,7 +1,7 @@
+import jwt from "jsonwebtoken"
 import mongoose, { Document, Model, Schema } from "mongoose"
 import { UserRole } from "./user-role.enum"
-import { UserType } from "./user-type.eum"
-import jwt from "jsonwebtoken"
+import { UserType } from "./user-type.enum"
 export interface IRefreshToken extends Document {
   userId: Schema.Types.ObjectId
   token: string

@@ -1,8 +1,10 @@
 import { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
-import DashboardUser, { IDashboardUser } from "@models/dashboard-user.model"
+import DashboardUser from "@models/dashboard-user.model"
+import AppUser from "@models/app-user.model"
 import { ErrorCode } from "@models/api/error-code.enum"
-import { DashboardUserRole } from "@models/user-role.enum"
+import { UserRole } from "@models/user-role.enum"
+
 // Middleware to check if the user is authenticated
 export const authenticate = (
   req: Request,
@@ -25,10 +27,14 @@ export const authenticate = (
 }
 
 // Middleware for authorizing roles
-export const authorizeDashboardUser = (roles: DashboardUserRole[]) => {
+export const authorizeUser = (roles: UserRole[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const user = await DashboardUser.findById(req.user?.userId)
-    if (!user || !roles.includes(user.role)) {
+    const dashboardUser = await DashboardUser.findById(req.user?.userId)
+    const appUser = await AppUser.findById(req.user?.userId)
+
+    const user = dashboardUser || appUser
+
+    if (!user || !roles.includes(user.role as UserRole)) {
       return res
         .status(403)
         .json({ message: "Access denied", errorCode: ErrorCode.ACCESS_DENIED })
