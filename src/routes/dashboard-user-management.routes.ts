@@ -1,14 +1,11 @@
-import { changeDashboardUserPassword } from "@controllers/dashboard-user-controllers/auth/change-dashboard-user-password"
-import { loginDashboardUser } from "@controllers/dashboard-user-controllers/auth/login-dashboard-user"
+import { changeDashboardUserPassword } from "@controllers/dashboard-user-controllers/auth/change-dashboard-user-password.controller"
+import { loginDashboardUser } from "@controllers/dashboard-user-controllers/auth/login-dashboard-user.controller"
 import { createDashboardUser } from "@controllers/dashboard-user-controllers/crud/create-dashboard-user.controller"
-import { deleteDashboardUser } from "@controllers/dashboard-user-controllers/crud/delete-dashboard-user"
-import { getAllDashboardUsers } from "@controllers/dashboard-user-controllers/crud/get-all-dashboard-users"
-import { updateDashboardUser } from "@controllers/dashboard-user-controllers/crud/update-dashboard-user"
-import {
-  authenticate,
-  authorizeDashboardUser
-} from "@middlewares/auth.middleware"
-import { DashboardUserRole } from "@models/user-role.enum"
+import { deleteDashboardUser } from "@controllers/dashboard-user-controllers/crud/delete-dashboard-user.controller"
+import { getAllDashboardUsers } from "@controllers/dashboard-user-controllers/crud/get-all-dashboard-users.controller"
+import { updateDashboardUser } from "@controllers/dashboard-user-controllers/crud/update-dashboard-user.controller"
+import { authenticate, authorizeUser } from "@middlewares/auth.middleware"
+import { UserRole } from "@models/user-role.enum"
 import express, { NextFunction, Request, Response } from "express"
 
 const router = express.Router()
@@ -21,7 +18,7 @@ router.post(
   },
 
   (req: Request, res: Response, next: NextFunction) => {
-    authorizeDashboardUser([DashboardUserRole.SUPER_ADMIN])(req, res, next)
+    authorizeUser([UserRole.SUPER_ADMIN])(req, res, next)
   },
 
   (req: Request, res: Response, next: NextFunction) => {
@@ -52,7 +49,7 @@ router.get(
   },
 
   (req: Request, res: Response, next: NextFunction) => {
-    authorizeDashboardUser([DashboardUserRole.SUPER_ADMIN])(req, res, next)
+    authorizeUser([UserRole.SUPER_ADMIN])(req, res, next)
   },
   getAllDashboardUsers
 )
@@ -65,7 +62,7 @@ router.put(
   },
 
   (req: Request, res: Response, next: NextFunction) => {
-    authorizeDashboardUser([DashboardUserRole.SUPER_ADMIN])(req, res, next)
+    authorizeUser([UserRole.SUPER_ADMIN])(req, res, next)
   },
   (req: Request, res: Response, next: NextFunction) => {
     updateDashboardUser(req, res, next)
@@ -80,7 +77,7 @@ router.delete(
   },
 
   (req: Request, res: Response, next: NextFunction) => {
-    authorizeDashboardUser([DashboardUserRole.SUPER_ADMIN])(req, res, next)
+    authorizeUser([UserRole.SUPER_ADMIN])(req, res, next)
   },
   (req: Request, res: Response, next: NextFunction) => {
     deleteDashboardUser(req, res, next)
