@@ -10,7 +10,7 @@ export interface IBlogger extends Document {
 }
 
 const BloggerSchema: Schema = new Schema({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   bio: { type: String, required: true },
   image: { type: String }, // URL to blogger's image
   socialLinks: [

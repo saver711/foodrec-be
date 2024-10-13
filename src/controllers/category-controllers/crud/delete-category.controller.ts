@@ -1,16 +1,29 @@
-import Meal from "@models/meal.model"
 import { Request, Response } from "express"
+import Category from "@models/category.model"
+import { ErrorCode } from "@models/api/error-code.enum"
 
-// Delete a meal by ID
-export const deleteMeal = async (req: Request, res: Response) => {
+// Delete a category by ID
+export const deleteCategory = async (req: Request, res: Response) => {
   const { id } = req.params
 
   try {
-    const deletedMeal = await Meal.findByIdAndDelete(id)
-    if (!deletedMeal) return res.status(404).json({ message: "Meal not found" })
+    const deletedCategory = await Category.findByIdAndDelete(id)
 
-    res.status(200).json({ message: "Meal deleted successfully" })
+    if (!deletedCategory) {
+      return res.status(404).json({
+        message: "Category not found",
+        errorCode: ErrorCode.CATEGORY_NOT_FOUND
+      })
+    }
+
+    res.status(200).json({
+      message: "Category deleted successfully",
+      data: deletedCategory
+    })
   } catch (error) {
-    res.status(500).json({ message: "Error deleting meal", error })
+    res.status(500).json({
+      error,
+      message: "Failed to delete category"
+    })
   }
 }

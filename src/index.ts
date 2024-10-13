@@ -1,6 +1,7 @@
+import "./config/env.config"
+
 // src/index.ts
-import connectDB from "@utils/db"
-import dotenv from "dotenv"
+import connectDB from "@utils/db.util"
 import express from "express"
 // ROUTES
 import appUserRoutes from "@routes/app-user-management.routes"
@@ -11,7 +12,6 @@ import mealRoutes from "@routes/meal.routes"
 import recommendationRoutes from "@routes/recommendation.routes"
 import refreshTokenRoutes from "@routes/refresh-token.route"
 import restaurantRoutes from "@routes/restaurant.routes"
-dotenv.config()
 
 const app = express()
 

@@ -5,7 +5,7 @@ import { UserType } from "@models/user-type.enum"
 import {
   generateAccessToken,
   generateRefreshToken
-} from "@utils/generate-tokens"
+} from "@utils/generate-tokens.util"
 import bcrypt from "bcryptjs"
 import { Request, Response } from "express"
 
