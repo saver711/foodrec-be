@@ -23,8 +23,8 @@ router.post(
   }
 )
 // Delete a category by ID
-router.post(
-  "/",
+router.delete(
+  "/:id",
   (req: Request, res: Response, next: NextFunction) => {
     authenticate(req, res, next)
   },

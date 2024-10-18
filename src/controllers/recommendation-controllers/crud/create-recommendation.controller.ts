@@ -28,6 +28,20 @@ export const createRecommendation = async (req: Request, res: Response) => {
       })
     }
 
+    // Ensure that there is no existing recommendation for the same blogger and meal
+    const existingRecommendation = await Recommendation.findOne({
+      meal: mealId,
+      blogger: bloggerId
+    })
+
+    if (existingRecommendation) {
+      return res.status(400).json({
+        message:
+          "A recommendation for this meal by this blogger already exists",
+        errorCode: ErrorCode.RECOMMENDATION_ALREADY_EXISTS
+      })
+    }
+
     // Create the recommendation
     const recommendation = new Recommendation({
       meal: mealId,

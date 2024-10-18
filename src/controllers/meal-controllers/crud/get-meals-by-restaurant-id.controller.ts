@@ -25,7 +25,28 @@ export const getMealsByRestaurantId = async (req: Request, res: Response) => {
     const pipeline: any[] = [{ $match: { restaurant: restaurantExists._id } }]
 
     // Sorting logic based on query
-    if (sortBy === "likes") {
+    // if (sortBy === "likes") {
+    //   pipeline.push({
+    //     $project: {
+    //       _id: 1,
+    //       name: 1,
+    //       description: 1,
+    //       images: 1,
+    //       categories: 1,
+    //       restaurant: 1,
+    //       likedBy: 1,
+    //       recommendations: 1,
+    //       likesCount: { $size: "$likedBy" } // Add likesCount for sorting
+    //     }
+    //   })
+    //   pipeline.push({
+    //     $sort: { likesCount: sortOrder === "asc" ? 1 : -1 }
+    //   })
+    //   pipeline.push({
+    //     $project: { likesCount: 0 } // Exclude likesCount from the final result
+    //   })
+    // } else
+    if (sortBy === "recommendations") {
       pipeline.push({
         $project: {
           _id: 1,
@@ -34,27 +55,7 @@ export const getMealsByRestaurantId = async (req: Request, res: Response) => {
           images: 1,
           categories: 1,
           restaurant: 1,
-          likedBy: 1,
-          recommendations: 1,
-          likesCount: { $size: "$likedBy" } // Add likesCount for sorting
-        }
-      })
-      pipeline.push({
-        $sort: { likesCount: sortOrder === "asc" ? 1 : -1 }
-      })
-      pipeline.push({
-        $project: { likesCount: 0 } // Exclude likesCount from the final result
-      })
-    } else if (sortBy === "recommendations") {
-      pipeline.push({
-        $project: {
-          _id: 1,
-          name: 1,
-          description: 1,
-          images: 1,
-          categories: 1,
-          restaurant: 1,
-          likedBy: 1,
+          // likedBy: 1,
           recommendations: 1,
           recommendationsCount: { $size: "$recommendations" } // Add recommendationsCount for sorting
         }

@@ -1,5 +1,6 @@
-import mongoose, { Document, Schema } from "mongoose"
+import mongoose, { CallbackError, Document, Schema } from "mongoose"
 import Blogger from "./blogger.model"
+import Meal from "./meal.model"
 
 export interface IRecommendation extends Document {
   quote: string
@@ -30,16 +31,35 @@ RecommendationSchema.post("findOneAndDelete", async function (doc) {
   }
 })
 
-RecommendationSchema.post("deleteMany", async function (doc) {
-  const recommendations = doc.result.n // Capture deleted recommendations
-  if (recommendations) {
-    // Remove recommendations from bloggers' lists
-    await Blogger.updateMany(
-      { recommendations: { $in: recommendations } },
-      { $pull: { recommendations: { $in: recommendations } } }
-    )
+// Pre-remove hook to handle recommendation deletions
+RecommendationSchema.pre(
+  ["findOneAndDelete", "deleteMany"],
+  { document: false, query: true },
+  async function (next) {
+    try {
+      const recommendations = await this.model.find(this.getFilter())
+      const recommendationIds = recommendations.map((rec: any) =>
+        rec._id.toString()
+      )
+
+      // 1. Remove recommendations from bloggers
+      await Blogger.updateMany(
+        { recommendations: { $in: recommendationIds } },
+        { $pull: { recommendations: { $in: recommendationIds } } }
+      )
+
+      // 2. Remove recommendations from meals
+      await Meal.updateMany(
+        { recommendations: { $in: recommendationIds } },
+        { $pull: { recommendations: { $in: recommendationIds } } }
+      )
+
+      next()
+    } catch (err) {
+      next(err as CallbackError)
+    }
   }
-})
+)
 
 export default mongoose.model<IRecommendation>(
   "Recommendation",

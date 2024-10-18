@@ -19,13 +19,13 @@ export const deleteMeal = async (req: Request, res: Response) => {
     }
 
     // Delete associated recommendations
-    await Recommendation.deleteMany({ meal: meal._id })
+    // await Recommendation.deleteMany({ meal: meal._id })
 
     // Remove the meal from the associated restaurants
-    await Restaurant.updateMany({ meals: id }, { $pull: { meals: id } })
+    // await Restaurant.updateMany({ meals: id }, { $pull: { meals: id } })
 
     // Remove the meal from the associated categories
-    await Category.updateMany({ meals: id }, { $pull: { meals: id } })
+    // await Category.updateMany({ meals: id }, { $pull: { meals: id } })
 
     // Finally, delete the meal itself
     await Meal.findByIdAndDelete(id)

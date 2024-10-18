@@ -25,7 +25,7 @@ router.post(
 
 // Get a recommendation by ID
 router.get(
-  "/:recommendationId",
+  "/:id",
   (req: Request, res: Response, next: NextFunction) => {
     authenticate(req, res, next)
   },
@@ -43,7 +43,7 @@ router.get(
 
 // Update a recommendation by ID
 router.put(
-  "/:recommendationId",
+  "/:id",
   (req: Request, res: Response, next: NextFunction) => {
     authenticate(req, res, next)
   },

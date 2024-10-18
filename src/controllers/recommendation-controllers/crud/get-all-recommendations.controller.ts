@@ -105,7 +105,7 @@ export const getAllRecommendations = async (req: Request, res: Response) => {
           "meal.description": 1,
           "meal.images": 1,
           "meal.categories": 1,
-          "meal.likedBy": 1,
+          // "meal.likedBy": 1,
           "restaurant._id": 1,
           "restaurant.name": 1,
           "restaurant.logo": 1

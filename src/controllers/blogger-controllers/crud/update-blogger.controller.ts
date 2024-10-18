@@ -1,15 +1,18 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import Blogger from "@models/blogger.model"
+import Recommendation from "@models/recommendation.model"
+import Meal from "@models/meal.model"
 import { deleteFileFromGCS, uploadFileToGCS } from "@utils/gcs.util" // Assume these functions are created
 import { NextFunction, Request, Response } from "express"
 import path from "path"
+import mongoose from "mongoose"
 
 export const updateBlogger = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const { name, bio, socialLinks, recommendations, followers } = req.body
+  const { name, bio, socialLinks, followers } = req.body
   const { id } = req.params
   const file = req.file // Image file passed through the request
 
@@ -41,7 +44,6 @@ export const updateBlogger = async (
     blogger.name = name || blogger.name
     blogger.bio = bio || blogger.bio
     blogger.socialLinks = socialLinks || blogger.socialLinks
-    blogger.recommendations = recommendations || blogger.recommendations
     blogger.followers = followers || blogger.followers
     blogger.image = imageUrl // Update with the new image URL
 

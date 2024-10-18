@@ -63,7 +63,6 @@ export const uploadFilesToGCS = (
 export const deleteFileFromGCS = (filePath: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     const file = bucket.file(filePath)
-    console.log(`🚀 ~ returnnewPromise ~ filePath:`, filePath)
     file.delete(err => {
       if (err) {
         console.log({ err })
@@ -77,20 +76,17 @@ export const deleteFileFromGCS = (filePath: string): Promise<void> => {
 }
 
 // Function to delete multiple files from Google Cloud Storage
-export const deleteFilesFromGCS = (
+export const deleteFilesFromGCS = async (
   files: string[],
   storageFolderName: string
 ): Promise<void[]> => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const deletePromises = files.map(file => {
-        const oldFileName = path.basename(file)
-        return deleteFileFromGCS(`${storageFolderName}/${oldFileName}`) // Using the existing deleteFileFromGCS function
-      })
-      const results = await Promise.all(deletePromises) // Wait for all delete operations to complete
-      resolve(results) // Resolve when all files are deleted
-    } catch (err) {
-      reject(err) // Reject in case of any errors
-    }
-  })
+  try {
+    const deletePromises = files.map(file => {
+      const oldFileName = path.basename(file)
+      return deleteFileFromGCS(`${storageFolderName}/${oldFileName}`) // Using the existing deleteFileFromGCS function
+    })
+    return await Promise.all(deletePromises) // Wait for all delete operations to complete
+  } catch (err) {
+    throw err // Throw error in case any delete operation fails
+  }
 }
