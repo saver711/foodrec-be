@@ -27,6 +27,8 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+foodrec-gcs-key.json
 
 # vercel
 .vercel

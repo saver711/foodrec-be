@@ -1,16 +1,30 @@
-import Meal from "@models/meal.model"
 import { Request, Response } from "express"
+import Recommendation from "@models/recommendation.model"
+import { ErrorCode } from "@models/api/error-code.enum"
 
-// Delete a meal by ID
-export const deleteMeal = async (req: Request, res: Response) => {
-  const { id } = req.params
+// Delete a recommendation by ID
+export const deleteRecommendation = async (req: Request, res: Response) => {
+  const { recommendationId } = req.params
 
   try {
-    const deletedMeal = await Meal.findByIdAndDelete(id)
-    if (!deletedMeal) return res.status(404).json({ message: "Meal not found" })
+    const recommendation = await Recommendation.findById(recommendationId)
 
-    res.status(200).json({ message: "Meal deleted successfully" })
+    if (!recommendation) {
+      return res.status(404).json({
+        errorCode: ErrorCode.RECOMMENDATION_NOT_FOUND,
+        message: "Recommendation not found"
+      })
+    }
+
+    await Recommendation.findByIdAndDelete(recommendationId)
+
+    res.status(200).json({
+      message: "Recommendation deleted successfully"
+    })
   } catch (error) {
-    res.status(500).json({ message: "Error deleting meal", error })
+    res.status(500).json({
+      error,
+      message: "Failed to delete recommendation"
+    })
   }
 }

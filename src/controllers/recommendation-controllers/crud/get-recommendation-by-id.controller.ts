@@ -4,11 +4,11 @@ import { ErrorCode } from "@models/api/error-code.enum"
 
 // Fetch a recommendation by ID and dynamically populate fields
 export const getRecommendationById = async (req: Request, res: Response) => {
-  const { recommendationId } = req.params
+  const { id } = req.params
   const { populate } = req.query // Extract the fields to populate from query parameters
 
   try {
-    let query = Recommendation.findById(recommendationId)
+    let query = Recommendation.findById(id)
 
     // If 'populate' fields are provided, dynamically populate them
     if (populate) {
