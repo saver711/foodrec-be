@@ -8,12 +8,20 @@ import {
 } from "@utils/generate-tokens.util"
 import { hash } from "@utils/hash.util" // Utility to hash password
 import { Request, Response } from "express"
+import { egyptianPhoneRegex } from 'src/consts/egyptian-phone-regex'
 
 // Register App User
 export const appUserPhoneRegister = async (req: Request, res: Response) => {
   const { name, phone, password } = req.body
 
   try {
+    if (!egyptianPhoneRegex.test(phone)) {
+      return res.status(400).json({
+        message: "Invalid phone number format. Must be like 01×12345678",
+        errorCode: ErrorCode.INVALID_PHONE_NUMBER
+      })
+    }
+
     // Validate request input
     if (!name) {
       return res.status(400).json({
