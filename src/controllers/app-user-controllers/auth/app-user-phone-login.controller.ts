@@ -7,12 +7,19 @@ import {
   generateRefreshToken
 } from "@utils/generate-tokens.util"
 import { Request, Response } from "express"
+import { egyptianPhoneRegex } from "src/consts/egyptian-phone-regex"
 
 // Login App User (Phone-based login with OTP)
 export const appUserPhoneLogin = async (req: Request, res: Response) => {
-  const { phone, password, otp } = req.body
+  const { phone, password } = req.body
 
   try {
+    if (!egyptianPhoneRegex.test(phone)) {
+      return res.status(400).json({
+        message: "Invalid phone number format. Must be like 01×12345678",
+        errorCode: ErrorCode.INVALID_PHONE_NUMBER
+      })
+    }
     // Find the user by phone number
     const user = await AppUser.findOne({ phone })
 
@@ -22,22 +29,6 @@ export const appUserPhoneLogin = async (req: Request, res: Response) => {
         errorCode: ErrorCode.USER_NOT_FOUND
       })
     }
-
-    // Check if user is not verified
-    // if (!user.isVerified) {
-    //   // Verify OTP
-    //   const isOtpValid = await verifyOtp(otp, user.otp)
-    //   if (!isOtpValid) {
-    //     return res.status(400).json({
-    //       message: "Invalid OTP",
-    //       errorCode: ErrorCode.INVALID_OTP
-    //     })
-    //   }
-
-    //   // Mark user as verified after OTP validation
-    //   user.isVerified = true
-    //   await user.save()
-    // }
 
     // Compare password
     const isPasswordValid = await compare(password, user.password)
@@ -64,7 +55,7 @@ export const appUserPhoneLogin = async (req: Request, res: Response) => {
     // Return tokens and user data
     return res.status(200).json({
       message: "Login successful",
-      data: { accessToken, refreshToken, user }
+      data: { accessToken, refreshToken, user: userWithoutPassword }
     })
   } catch (error) {
     return res.status(500).json({

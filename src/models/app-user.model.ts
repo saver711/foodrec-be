@@ -3,6 +3,7 @@ import { UserRole } from "./user-role.enum"
 
 export interface IAppUser extends Document {
   name: string
+  image?: string // Profile image
   email?: string // Optional since some users might register with phone only
   phone?: string // Optional since some users might register with Google only
   googleId?: string // Optional for Google registration
@@ -15,6 +16,7 @@ export interface IAppUser extends Document {
 
 const AppUserSchema: Schema = new Schema({
   name: { type: String, required: true },
+  image: { type: String }, // Profile image URL
   email: { type: String, unique: true, sparse: true }, // Email is optional but must be unique if provided
   phone: { type: String, unique: true, sparse: true }, // Phone is optional but must be unique if provided
   googleId: { type: String, unique: true, sparse: true }, // Google ID is optional but must be unique if provided
