@@ -26,19 +26,40 @@ export const authenticate = (
   }
 }
 
-// Middleware for authorizing roles
+// Middleware for authorizing roles and checking verification status
 export const authorizeUser = (roles: UserRole[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const dashboardUser = await DashboardUser.findById(req.user?.userId)
-    const appUser = await AppUser.findById(req.user?.userId)
+    try {
+      const dashboardUser = await DashboardUser.findById(req.user?.userId)
+      const appUser = await AppUser.findById(req.user?.userId)
 
-    const user = dashboardUser || appUser
+      const user = dashboardUser || appUser
 
-    if (!user || !roles.includes(user.role as UserRole)) {
-      return res
-        .status(403)
-        .json({ message: "Access denied", errorCode: ErrorCode.ACCESS_DENIED })
+      // Check if the user exists and is one of the allowed roles
+      if (!user || !roles.includes(user.role as UserRole)) {
+        return res
+          .status(403)
+          .json({
+            message: "Access denied",
+            errorCode: ErrorCode.ACCESS_DENIED
+          })
+      }
+
+      // If the user is an app user, ensure they are verified
+      if (appUser && !appUser.isVerified) {
+        return res.status(403).json({
+          message: "User is not verified",
+          errorCode: ErrorCode.USER_NOT_VERIFIED
+        })
+      }
+
+      // Proceed to the next middleware if all checks pass
+      next()
+    } catch (error) {
+      return res.status(500).json({
+        message: "Server error during authorization",
+        error
+      })
     }
-    next()
   }
 }

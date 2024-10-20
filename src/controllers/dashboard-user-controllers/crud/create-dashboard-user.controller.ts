@@ -49,7 +49,7 @@ export const createDashboardUser = async (
     )
     res.status(201).json({
       message: "User created successfully",
-      data: { ...userWithoutPassword, accessToken, refreshToken }
+      data: { user: userWithoutPassword, accessToken, refreshToken }
     })
   } catch (error) {
     res.status(500).json({ message: "Server error" })
