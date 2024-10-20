@@ -1,12 +1,13 @@
 import jwt from "jsonwebtoken"
 import RefreshToken from "../models/refresh-token.model"
 import { DashboardUserRole, UserRole } from "../models/user-role.enum"
+import { UserType } from "@models/user-type.enum"
 
 // Generate access token
 export const generateAccessToken = (
   userId: string,
   role: UserRole | DashboardUserRole,
-  userType: string
+  userType: UserType
 ) => {
   return jwt.sign(
     { userId, role, userType },
@@ -21,7 +22,7 @@ export const generateAccessToken = (
 export const generateRefreshToken = async (
   userId: string,
   role: UserRole | DashboardUserRole,
-  userType: string
+  userType: UserType
 ) => {
   const token = jwt.sign(
     { userId, userType, role },

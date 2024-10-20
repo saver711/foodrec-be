@@ -1,7 +1,8 @@
-import bcrypt from "bcryptjs"
-import { Request, Response } from "express"
 import { ErrorCode } from "@models/api/error-code.enum"
 import DashboardUser, { IDashboardUser } from "@models/dashboard-user.model"
+import { hash } from "@utils/hash.util"
+import bcrypt from "bcryptjs"
+import { Request, Response } from "express"
 
 // Change Dashboard User Password
 export const changeDashboardUserPassword = async (
@@ -32,8 +33,7 @@ export const changeDashboardUserPassword = async (
     }
 
     // Hash the new password
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(newPassword, salt)
+    const hashedPassword = await hash(newPassword)
 
     // Update the user's password
     user.password = hashedPassword
