@@ -15,7 +15,10 @@ export const loginDashboardUser = async (req: Request, res: Response) => {
   try {
     const user = await DashboardUser.findOne({ email })
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" })
+      return res.status(400).json({
+        message: "User not found",
+        errorCode: ErrorCode.USER_NOT_FOUND
+      })
     }
 
     // Compare the password
@@ -30,7 +33,7 @@ export const loginDashboardUser = async (req: Request, res: Response) => {
     // Delete all previously created refresh tokens for this user
     await RefreshToken.deleteMany({
       userId: user._id,
-      userType: "DashboardUser"
+      userType: UserType.DashboardUser
     })
 
     const accessToken = generateAccessToken(
@@ -44,9 +47,42 @@ export const loginDashboardUser = async (req: Request, res: Response) => {
       UserType.DashboardUser
     )
 
+    // Remove the password field before returning user info
+    const { password: _, ...userWithoutPassword } = user.toObject()
+
+    // Set HTTP-only cookies for tokens
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1 * 60 * 1000
+
+      // maxAge:
+      //   (+process.env.ACCESS_TOKEN_EXPIRES_IN!.charAt(0) || 1) *
+      //   24 *
+      //   60 *
+      //   60 *
+      //   1000 // 1 day
+    })
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 2 * 60 * 1000 // 3 minutes in milliseconds
+      // maxAge:
+      //   (+process.env.REFRESH_TOKEN_EXPIRES_IN!.charAt(0) || 7) *
+      //   24 *
+      //   60 *
+      //   60 *
+      //   1000 // 7 days
+    })
+
     res.json({
-      message: "Login successfully",
-      data: { accessToken, role: user.role, refreshToken }
+      message: "Login successful",
+      data: {
+        user: userWithoutPassword,
+        accessToken,
+        refreshToken
+      } // , accessToken, refreshToken Temp for Postman
     })
   } catch (error) {
     res.status(500).json({ message: "Server error", error })

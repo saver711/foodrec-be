@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose"
-import { DashboardUserRole } from "./user-role.enum"
+import { DASHBOARD_ROLES_SET, DashboardUserRole } from "./user-role.enum"
 
 export interface IDashboardUser extends Document {
   name: string
@@ -15,12 +15,12 @@ const DashboardUserSchema: Schema = new Schema({
   password: { type: String, required: true },
   role: {
     type: String,
-    enum: [DashboardUserRole.SUPER_ADMIN, DashboardUserRole.AUDITOR],
-    default: DashboardUserRole.AUDITOR
+    enum: DASHBOARD_ROLES_SET,
+    required: true // Role must be passed from frontend
   }
 })
 
 export default mongoose.model<IDashboardUser>(
-  "DashboardUser ",
+  "DashboardUser",
   DashboardUserSchema
 )
