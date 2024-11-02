@@ -3,6 +3,7 @@ import { deleteRecommendation } from "@controllers/recommendation-controllers/cr
 import { getAllRecommendations } from "@controllers/recommendation-controllers/crud/get-all-recommendations.controller"
 import { getRecommendationById } from "@controllers/recommendation-controllers/crud/get-recommendation-by-id.controller"
 import { updateRecommendation } from "@controllers/recommendation-controllers/crud/update-recommendation.controller"
+import { upload } from "@utils/gcs.util"
 import { authenticate, authorizeUser } from "@middlewares/auth.middleware"
 import { UserRole } from "@models/user-role.enum"
 import express, { NextFunction, Request, Response } from "express"
@@ -18,6 +19,7 @@ router.post(
   (req: Request, res: Response, next: NextFunction) => {
     authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR])(req, res, next)
   },
+  upload.array("mealImages"),
   (req: Request, res: Response, next: NextFunction) => {
     createRecommendation(req, res)
   }
@@ -50,6 +52,7 @@ router.put(
   (req: Request, res: Response, next: NextFunction) => {
     authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR])(req, res, next) // Allow SUPER_ADMIN and AUDITOR to update
   },
+  upload.array("mealImages"),
   (req: Request, res: Response, next: NextFunction) => {
     updateRecommendation(req, res)
   }

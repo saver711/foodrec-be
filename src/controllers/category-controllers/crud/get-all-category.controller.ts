@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import Category from "@models/category.model"
 import { SortOrder } from "mongoose"
 
-// Get all categories, with sorting by number of meals
+// Get all categories, with sorting by number of recommendations
 export const getAllCategories = async (req: Request, res: Response) => {
   const {
     page = 1,
@@ -17,12 +17,16 @@ export const getAllCategories = async (req: Request, res: Response) => {
 
     const pipeline: any[] = []
 
-    if (sortBy === "meals") {
+    if (sortBy === "recommendations") {
       pipeline.push({
-        $project: { mealsCount: { $size: "$meals" }, name: 1, meals: 1 }
+        $project: {
+          recommendationsCount: { $size: "$recommendations" },
+          name: 1,
+          recommendations: 1
+        }
       })
       pipeline.push({
-        $sort: { mealsCount: sortOrder === "asc" ? 1 : -1 }
+        $sort: { recommendationsCount: sortOrder === "asc" ? 1 : -1 }
       })
     } else {
       const sortOptions: { [key: string]: SortOrder } = {}

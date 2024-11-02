@@ -1,6 +1,6 @@
-import { Request, Response } from "express"
 import Location from "@models/location.model"
 import Restaurant from "@models/restaurant.model"
+import { Request, Response } from "express"
 
 // Get all restaurants with sorting options, including sorting by nearest location
 export const getAllRestaurants = async (req: Request, res: Response) => {
@@ -49,7 +49,7 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
             name: { $first: "$restaurant.name" },
             logo: { $first: "$restaurant.logo" },
             distance: { $first: "$distance" }, // Keep the nearest distance
-            meals: { $first: "$restaurant.meals" }, // Keep meal IDs
+            recommendations: { $first: "$restaurant.recommendations" }, // Keep recommendation IDs
             locations: { $first: "$restaurant.locations" } // Keep location IDs
           }
         },
@@ -70,7 +70,8 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
           pipeline.push({
             $lookup: {
               from: field,
-              localField: field === "meals" ? "meals" : "locations",
+              localField:
+                field === "recommendations" ? "recommendations" : "locations",
               foreignField: "_id",
               as: field
             }
@@ -80,7 +81,7 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
 
       const restaurants = await Location.aggregate(pipeline)
 
-      const totalRestaurants = await Location.countDocuments()
+      const totalRestaurants = restaurants.length
 
       return res.status(200).json({
         data: restaurants,
@@ -92,36 +93,36 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
         message: "Restaurants fetched successfully"
       })
     } else {
-      // Aggregation pipeline for sorting by meals count or recommendations
+      // Aggregation pipeline for sorting by recommendations count or recommendations
       const pipeline: any[] = []
 
-      if (sortBy === "meals") {
+      if (sortBy === "recommendations") {
         pipeline.push({
           $project: {
-            mealsCount: { $size: "$meals" },
+            recommendationsCount: { $size: "$recommendations" },
             name: 1,
             logo: 1,
-            meals: 1,
+            recommendations: 1,
             locations: 1
           }
         })
         pipeline.push({
-          $sort: { mealsCount: sortOrder === "asc" ? 1 : -1 }
+          $sort: { recommendationsCount: sortOrder === "asc" ? 1 : -1 }
         })
       } else if (sortBy === "recommendations") {
         pipeline.push({
           $lookup: {
-            from: "meals",
-            localField: "meals",
+            from: "recommendations",
+            localField: "recommendations",
             foreignField: "_id",
-            as: "meals"
+            as: "recommendations"
           }
         })
         pipeline.push({
           $lookup: {
             from: "recommendations",
-            localField: "meals._id",
-            foreignField: "meal",
+            localField: "recommendations._id",
+            foreignField: "recommendation",
             as: "recommendations"
           }
         })
@@ -130,7 +131,7 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
             recommendationsCount: { $size: "$recommendations" },
             name: 1,
             logo: 1,
-            meals: 1,
+            recommendations: 1,
             locations: 1
           }
         })
@@ -154,7 +155,8 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
           pipeline.push({
             $lookup: {
               from: field,
-              localField: field === "meals" ? "meals" : "locations",
+              localField:
+                field === "recommendations" ? "recommendations" : "locations",
               foreignField: "_id",
               as: field
             }

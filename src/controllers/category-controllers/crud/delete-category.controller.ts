@@ -1,6 +1,6 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import Category from "@models/category.model"
-import Meal from "@models/meal.model"
+import Recommendation from "@models/recommendation.model"
 import { Request, Response } from "express"
 
 // Delete a category by ID
@@ -17,19 +17,19 @@ export const deleteCategory = async (req: Request, res: Response) => {
       })
     }
 
-    // Find all meals associated with this category
-    const mealIds = category.meals
+    // Find all recommendations associated with this category
+    const recommendationsIds = category.recommendations
 
-    // Delete all meals associated with the category
-    if (mealIds.length > 0) {
-      await Meal.deleteMany({ _id: { $in: mealIds } })
+    // Delete all recommendations associated with the category
+    if (recommendationsIds.length > 0) {
+      await Recommendation.deleteMany({ _id: { $in: recommendationsIds } })
     }
 
     // Finally, delete the category itself
     await category.deleteOne()
 
     res.status(200).json({
-      message: "Category and related meals deleted successfully"
+      message: "Category and related recommendations deleted successfully"
     })
   } catch (error) {
     res.status(500).json({

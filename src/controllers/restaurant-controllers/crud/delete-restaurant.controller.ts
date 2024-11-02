@@ -1,10 +1,8 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import Blogger from "@models/blogger.model"
-import Meal from "@models/meal.model"
+import Location from "@models/location.model"
 import Recommendation from "@models/recommendation.model"
 import Restaurant from "@models/restaurant.model"
-import Location from "@models/location.model"
-import mongoose, { ObjectId } from "mongoose"
 import { Request, Response } from "express"
 
 // Delete a restaurant by ID
@@ -21,18 +19,22 @@ export const deleteRestaurant = async (req: Request, res: Response) => {
       })
     }
 
-    // Find all meals associated with the restaurant
-    const meals = await Meal.find({ restaurant: id })
-    const mealIds = meals.map(meal => meal._id)
+    // Find all recommendations associated with the restaurant
+    const recommendations = await Recommendation.find({ restaurant: id })
+    const recommendationsIds = recommendations.map(
+      recommendation => recommendation._id
+    )
 
-    if (mealIds.length > 0) {
-      // Delete all recommendations associated with those meals
-      await Recommendation.deleteMany({ meal: { $in: mealIds } })
+    if (recommendationsIds.length > 0) {
+      // Delete all recommendations associated with those recommendations
+      await Recommendation.deleteMany({
+        recommendation: { $in: recommendationsIds }
+      })
       console.log("recommendations deleted")
 
-      // Find all recommendations associated with those meals
+      // Find all recommendations associated with those recommendations
       const recommendations = await Recommendation.find({
-        meal: { $in: mealIds }
+        recommendation: { $in: recommendationsIds }
       })
       const recommendationIds = recommendations.map(rec => rec._id)
 
@@ -45,8 +47,8 @@ export const deleteRestaurant = async (req: Request, res: Response) => {
       }
     }
 
-    // Delete all meals associated with the restaurant
-    await Meal.deleteMany({ restaurant: id })
+    // Delete all recommendations associated with the restaurant
+    await Recommendation.deleteMany({ restaurant: id })
 
     // Delete all locations associated with the restaurant
     await Location.deleteMany({ restaurant: id })
@@ -57,7 +59,7 @@ export const deleteRestaurant = async (req: Request, res: Response) => {
 
     res.status(200).json({
       message:
-        "Restaurant and related meals and recommendations deleted successfully"
+        "Restaurant and related recommendations and recommendations deleted successfully"
     })
   } catch (error) {
     console.error("Error deleting restaurant:", error) // Log the exact error

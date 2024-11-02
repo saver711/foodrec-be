@@ -1,7 +1,7 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import Restaurant from "@models/restaurant.model"
 import Location from "@models/location.model"
-import Meal from "@models/meal.model"
+import Recommendation from "@models/recommendation.model"
 import { deleteFileFromGCS, uploadFileToGCS } from "@utils/gcs.util" // Import the GCS utility functions
 import { Request, Response } from "express"
 import mongoose from "mongoose"
@@ -10,7 +10,7 @@ import path from "path"
 // Update a restaurant by ID
 export const updateRestaurant = async (req: Request, res: Response) => {
   const { id } = req.params
-  const { name, meals, locations } = req.body // Assuming locations is a structured object
+  const { name, recommendations, locations } = req.body // Assuming locations is a structured object
   const file = req.file // Assume logo is passed as a file (Multer)
 
   try {
@@ -38,25 +38,31 @@ export const updateRestaurant = async (req: Request, res: Response) => {
     })
     const savedLocations = await Promise.all(locationPromises)
 
-    // Check if any meal belongs to a different restaurant
-    if (meals && meals.length > 0) {
-      const conflictingMeals = await Meal.find({
-        _id: { $in: meals },
+    // Check if any recommendation belongs to a different restaurant
+    if (recommendations && recommendations.length > 0) {
+      const conflictingRecommendations = await Recommendation.find({
+        _id: { $in: recommendations },
         restaurant: { $ne: restaurant._id } // Check if the restaurant ID doesn't match
       })
-      console.log(`🚀 ~ updateRestaurant ~ conflictingMeals:`, conflictingMeals)
+      console.log(
+        `🚀 ~ updateRestaurant ~ conflictingRecommendations:`,
+        conflictingRecommendations
+      )
 
-      if (conflictingMeals.length > 0) {
+      if (conflictingRecommendations.length > 0) {
         return res.status(400).json({
-          message: "One or many meals belong to another restaurant",
-          errorCode: ErrorCode.ONE_OR_MANY_MEAL_BELONG_TO_ANOTHER_RESTAURANT,
-          conflictingMeals: conflictingMeals.map(meal => meal.name) // Return conflicting meals
+          message: "One or many recommendations belong to another restaurant",
+          errorCode:
+            ErrorCode.ONE_OR_MANY_RECOMMENDATION_BELONG_TO_ANOTHER_RESTAURANT,
+          conflictingRecommendations: conflictingRecommendations.map(
+            recommendation => recommendation.mealName
+          ) // Return conflicting recommendations
         })
       }
 
-      // Update the restaurant reference in the meals
-      await Meal.updateMany(
-        { _id: { $in: meals } }, // Find meals by their IDs
+      // Update the restaurant reference in the recommendations
+      await Recommendation.updateMany(
+        { _id: { $in: recommendations } }, // Find recommendations by their IDs
         { $set: { restaurant: restaurant._id } } // Update the restaurant reference
       )
     }

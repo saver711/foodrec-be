@@ -8,7 +8,6 @@ import appUserRoutes from "@routes/app-user-management.routes"
 import bloggerRoutes from "@routes/blogger.routes"
 import categoryRoutes from "@routes/category.routes"
 import dashboardUserRoutes from "@routes/dashboard-user-management.routes"
-import mealRoutes from "@routes/meal.routes"
 import recommendationRoutes from "@routes/recommendation.routes"
 import authRoutes from "@routes/auth.routes"
 import restaurantRoutes from "@routes/restaurant.routes"
@@ -31,9 +30,6 @@ app.use("/api/auth", authRoutes)
 
 // Blogger routes
 app.use("/api/bloggers", bloggerRoutes)
-
-// meal routes
-app.use("/api/meals", mealRoutes)
 
 // restaurant routes
 app.use("/api/restaurants", restaurantRoutes)

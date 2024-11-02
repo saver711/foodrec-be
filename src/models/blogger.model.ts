@@ -27,36 +27,32 @@ const BloggerSchema: Schema = new Schema({
   followers: [{ type: Schema.Types.ObjectId, ref: "AppUser" }] // Many followers
 })
 
-// Pre-remove hook to handle blogger deletion
-BloggerSchema.pre(
+// Post hook to handle cleanup after blogger deletion
+BloggerSchema.post(
   ["findOneAndDelete", "deleteMany"],
-  { document: false, query: true },
-  async function (next) {
-    const bloggers = await this.model.find(this.getFilter()) // Find blogger(s) being deleted
-
+  async function (doc: IBlogger) {
     try {
+      const bloggers: IBlogger[] = doc
+        ? [doc]
+        : await this.model.find(this.getFilter())
+
       // Loop through each blogger and handle deletions
       for (const blogger of bloggers) {
         // 1. Delete blogger's image from GCS
         if (blogger.image) {
-          const oldImageFileName = path.basename(blogger.image) // Extract the filename from the image URL
+          const oldImageFileName = path.basename(blogger.image)
           await deleteFileFromGCS(`bloggers/${oldImageFileName}`)
         }
 
         // 2. Find and delete all recommendations associated with the blogger
-        const recommendations = await Recommendation.find({
-          _id: { $in: blogger.recommendations }
-        })
-        const recommendationIds = recommendations.map((r: any) =>
-          r._id.toString()
+        const recommendationIds = blogger.recommendations.map(id =>
+          id.toString()
         )
         await Recommendation.deleteMany({ _id: { $in: recommendationIds } })
-        // This will fire the `pre` hooks for recommendations to ensure cleanup is done.
+        // This will trigger any post hooks on the Recommendation model for further cleanup.
       }
-
-      next() // Proceed with the deletion
     } catch (err) {
-      next(err as CallbackError)
+      console.error("Error during blogger post-delete cleanup:", err)
     }
   }
 )
