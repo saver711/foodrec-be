@@ -1,13 +1,13 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import Category from "@models/category.model"
-import Meal from "@models/meal.model"
+import Recommendation from "@models/recommendation.model"
 import { Request, Response } from "express"
 import mongoose from "mongoose"
 
 // Update a category by ID
 export const updateCategory = async (req: Request, res: Response) => {
   const { id } = req.params
-  const { name, meals } = req.body
+  const { name, recommendations } = req.body
 
   try {
     // Find the category to be updated
@@ -33,27 +33,29 @@ export const updateCategory = async (req: Request, res: Response) => {
       }
     }
 
-    // Handle meals being updated
-    if (meals && meals.length > 0) {
-      // Ensure meals exist
-      const validMeals = await Meal.find({ _id: { $in: meals } })
-      if (validMeals.length !== meals.length) {
+    // Handle recommendations being updated
+    if (recommendations && recommendations.length > 0) {
+      // Ensure recommendations exist
+      const validRecommendations = await Recommendation.find({
+        _id: { $in: recommendations }
+      })
+      if (validRecommendations.length !== recommendations.length) {
         return res.status(404).json({
-          message: "One or more meals not found",
-          errorCode: ErrorCode.MEAL_NOT_FOUND
+          message: "One or more recommendations not found",
+          errorCode: ErrorCode.RECOMMENDATION_NOT_FOUND
         })
       }
 
-      // Add this category to the meals if they were not previously in this category
-      await Meal.updateMany(
-        { _id: { $in: meals } },
+      // Add this category to the recommendations if they were not previously in this category
+      await Recommendation.updateMany(
+        { _id: { $in: recommendations } },
         { $addToSet: { categories: category._id } } // Use $addToSet to avoid duplicates
       )
     }
 
     // Update category details
     category.name = name || category.name
-    category.meals = meals || category.meals
+    category.recommendations = recommendations || category.recommendations
 
     await category.save()
 

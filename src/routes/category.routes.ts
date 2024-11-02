@@ -36,7 +36,7 @@ router.delete(
   }
 )
 
-// Get all categories, with sorting by number of meals
+// Get all categories, with sorting by number of recommendations
 router.get(
   "/",
   (req: Request, res: Response, next: NextFunction) => {

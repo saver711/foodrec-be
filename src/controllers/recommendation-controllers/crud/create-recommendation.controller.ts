@@ -1,24 +1,34 @@
 import { Request, Response } from "express"
 import Recommendation from "@models/recommendation.model"
-import Meal from "@models/meal.model"
 import Blogger from "@models/blogger.model"
+import Restaurant from "@models/restaurant.model"
+import Category from "@models/category.model"
 import { ErrorCode } from "@models/api/error-code.enum"
 import mongoose from "mongoose"
+import { uploadFilesToGCS } from "@utils/gcs.util" // Assuming you have a utility for file uploads
 
 // Create a new recommendation
 export const createRecommendation = async (req: Request, res: Response) => {
-  const { mealId, bloggerId, quote, rating, date, url } = req.body
+  const {
+    bloggerId,
+    quote,
+    rating,
+    date,
+    url,
+    mealName,
+    mealDescription,
+    restaurantId,
+    categories
+  } = req.body
+  const files = req.files as Express.Multer.File[] // Uploaded images
 
   try {
-    // Check if the meal exists
-    const meal = await Meal.findById(mealId)
-    if (!meal) {
+    if (!categories) {
       return res.status(404).json({
-        message: "Meal not found",
-        errorCode: ErrorCode.MEAL_NOT_FOUND
+        message: "Categories not found",
+        errorCode: ErrorCode.CATEGORY_NOT_FOUND
       })
     }
-
     // Check if the blogger exists
     const blogger = await Blogger.findById(bloggerId)
     if (!blogger) {
@@ -28,12 +38,21 @@ export const createRecommendation = async (req: Request, res: Response) => {
       })
     }
 
+    // Check if the restaurant exists
+    const restaurant = await Restaurant.findById(restaurantId)
+    if (!restaurant) {
+      return res.status(404).json({
+        message: "Restaurant not found",
+        errorCode: ErrorCode.RESTAURANT_NOT_FOUND
+      })
+    }
+
     // Ensure that there is no existing recommendation for the same blogger and meal
     const existingRecommendation = await Recommendation.findOne({
-      meal: mealId,
-      blogger: bloggerId
+      restaurant: restaurantId,
+      blogger: bloggerId,
+      mealName
     })
-
     if (existingRecommendation) {
       return res.status(400).json({
         message:
@@ -42,21 +61,51 @@ export const createRecommendation = async (req: Request, res: Response) => {
       })
     }
 
+    // Validate and attach categories
+    const validCategories = await Category.find({ _id: { $in: categories } })
+
+    if (validCategories.length !== categories.length) {
+      return res.status(404).json({
+        message: "One or more categories not found",
+        errorCode: ErrorCode.CATEGORY_NOT_FOUND
+      })
+    }
+
+    // Upload images to Google Cloud Storage
+    let uploadedImages: string[] = []
+    if (files && files.length > 0) {
+      uploadedImages = await uploadFilesToGCS(files, "recommendations")
+    }
+
     // Create the recommendation
     const recommendation = new Recommendation({
-      meal: mealId,
       blogger: bloggerId,
       quote,
       rating,
       date,
-      url
+      url,
+      mealName,
+      mealDescription,
+      mealImages: uploadedImages, // Attach uploaded images
+      restaurant: restaurantId,
+      categories
     })
 
     await recommendation.save()
 
-    // Attach the recommendation to the meal
-    meal.recommendations.push(recommendation._id as mongoose.Types.ObjectId)
-    await meal.save()
+    // Attach the recommendation to the restaurant
+    restaurant.recommendations.push(
+      recommendation._id as mongoose.Types.ObjectId
+    )
+    await restaurant.save()
+
+    // Attach the recommendation to the categories
+    for (const category of validCategories) {
+      category.recommendations.push(
+        recommendation._id as mongoose.Types.ObjectId
+      )
+      await category.save()
+    }
 
     // Attach the recommendation to the blogger
     blogger.recommendations.push(recommendation._id as mongoose.Types.ObjectId)

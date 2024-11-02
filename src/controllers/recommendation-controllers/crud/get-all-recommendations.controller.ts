@@ -76,18 +76,9 @@ export const getAllRecommendations = async (req: Request, res: Response) => {
       { $unwind: "$restaurant" },
       {
         $lookup: {
-          from: "meals",
-          localField: "restaurant.meals",
-          foreignField: "_id",
-          as: "meal"
-        }
-      },
-      { $unwind: "$meal" },
-      {
-        $lookup: {
           from: "recommendations",
-          localField: "meal._id",
-          foreignField: "meal",
+          localField: "restaurant._id",
+          foreignField: "restaurant",
           as: "recommendations"
         }
       },
@@ -100,20 +91,17 @@ export const getAllRecommendations = async (req: Request, res: Response) => {
           rating: "$recommendations.rating",
           date: "$recommendations.date",
           url: "$recommendations.url",
-          "meal._id": 1,
-          "meal.name": 1,
-          "meal.description": 1,
-          "meal.images": 1,
-          "meal.categories": 1,
-          // "meal.likedBy": 1,
+          mealName: "$recommendations.mealName",
+          mealDescription: "$recommendations.mealDescription",
+          mealImages: "$recommendations.mealImages",
           "restaurant._id": 1,
           "restaurant.name": 1,
           "restaurant.logo": 1
         }
       },
       { $sort: { distance: 1 } },
-      { $limit: pageSize },
-      { $skip: (pageNumber - 1) * pageSize }
+      { $skip: (pageNumber - 1) * pageSize },
+      { $limit: pageSize }
     ])
 
     return res.status(200).json({
