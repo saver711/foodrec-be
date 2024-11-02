@@ -13,7 +13,7 @@ export const generateAccessToken = (
     { userId, role, userType },
     process.env.JWT_SECRET as string,
     {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "1h" // Access token valid for 15 minutes
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "1h"
     }
   )
 }
@@ -28,7 +28,7 @@ export const generateRefreshToken = async (
     { userId, userType, role },
     process.env.JWT_SECRET as string,
     {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d" // Refresh token valid for 7 days
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d"
     }
   )
 
@@ -45,5 +45,6 @@ export const generateRefreshToken = async (
   })
 
   await refreshToken.save()
+
   return token
 }

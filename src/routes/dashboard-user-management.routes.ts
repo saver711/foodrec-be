@@ -1,3 +1,4 @@
+import { logout } from "@controllers/auth-controllers/logout.controller"
 import { changeDashboardUserPassword } from "@controllers/dashboard-user-controllers/auth/change-dashboard-user-password.controller"
 import { loginDashboardUser } from "@controllers/dashboard-user-controllers/auth/login-dashboard-user.controller"
 import { createDashboardUser } from "@controllers/dashboard-user-controllers/crud/create-dashboard-user.controller"
@@ -12,7 +13,7 @@ const router = express.Router()
 
 // Create a new dashboard user (SUPER_ADMIN only)
 router.post(
-  "/register",
+  "/create",
   (req: Request, res: Response, next: NextFunction) => {
     authenticate(req, res, next)
   },
@@ -40,6 +41,17 @@ router.post(
 router.post("/login", (req: Request, res: Response) => {
   loginDashboardUser(req, res)
 })
+
+// Logout route
+router.post(
+  "/logout",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next)
+  },
+  (req: Request, res: Response) => {
+    logout(req, res)
+  }
+)
 
 // Get all dashboard users (SUPER_ADMIN only)
 router.get(

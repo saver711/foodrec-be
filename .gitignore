@@ -37,3 +37,5 @@ foodrec-gcs-key.json
 *.tsbuildinfo
 next-env.d.ts
 pdg.txt
+
+foodrec-be.zip

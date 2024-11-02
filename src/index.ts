@@ -10,7 +10,7 @@ import categoryRoutes from "@routes/category.routes"
 import dashboardUserRoutes from "@routes/dashboard-user-management.routes"
 import mealRoutes from "@routes/meal.routes"
 import recommendationRoutes from "@routes/recommendation.routes"
-import refreshTokenRoutes from "@routes/refresh-token.route"
+import authRoutes from "@routes/auth.routes"
 import restaurantRoutes from "@routes/restaurant.routes"
 
 const app = express()
@@ -27,7 +27,7 @@ app.use("/api/dashboard-users", dashboardUserRoutes)
 app.use("/api/app-users", appUserRoutes)
 
 // app-users routes
-app.use("/api/refresh-token", refreshTokenRoutes)
+app.use("/api/auth", authRoutes)
 
 // Blogger routes
 app.use("/api/bloggers", bloggerRoutes)
