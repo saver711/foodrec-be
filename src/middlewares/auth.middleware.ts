@@ -11,14 +11,15 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.header("Authorization")?.split(" ")[1] // Bearer token // Temp for Postman
+  const tokenFromAuthHeader = req.header("Authorization")?.split(" ")[1] // Bearer token // Temp for Postman
 
-  // const cookies = req.headers.cookie?.split(";").reduce((acc: any, cookie) => {
-  //   const [key, value] = cookie.trim().split("=")
-  //   acc[key] = value
-  //   return acc
-  // }, {})
-  // const token = cookies?.accessToken
+  const cookies = req.headers.cookie?.split(";").reduce((acc: any, cookie) => {
+    const [key, value] = cookie.trim().split("=")
+    acc[key] = value
+    return acc
+  }, {})
+  const tokenFromCookies = cookies?.accessToken
+  const token = tokenFromAuthHeader || tokenFromCookies
   if (!token) {
     return res.status(401).json({
       message: "No token, authorization denied",

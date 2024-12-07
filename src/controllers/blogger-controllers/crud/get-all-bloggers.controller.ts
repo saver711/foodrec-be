@@ -1,9 +1,16 @@
 import Blogger from "@models/blogger.model"
 import { Request, Response } from "express"
 import { SortOrder } from "mongoose" // Import SortOrder type
-
 export const getAllBloggers = async (req: Request, res: Response) => {
-  const { page = 1, perPage = 10, sortBy, sortOrder, populate } = req.query
+  const {
+    page = 0,
+    perPage = 10,
+    sortBy,
+    sortOrder = "asc",
+    populate,
+    name,
+    recommendationsIds
+  } = req.query // Default page to 0
 
   try {
     const pageNumber = +page
@@ -11,6 +18,21 @@ export const getAllBloggers = async (req: Request, res: Response) => {
 
     // Construct the pipeline for aggregation
     const pipeline: any[] = []
+
+    // Filtering logic
+    const matchStage: any = {}
+    if (name) {
+      matchStage.name = { $regex: new RegExp(name as string, "i") } // Case-insensitive name search
+    }
+    if (recommendationsIds) {
+      const ids = Array.isArray(recommendationsIds)
+        ? recommendationsIds
+        : [recommendationsIds]
+      matchStage.recommendations = { $in: ids }
+    }
+    if (Object.keys(matchStage).length > 0) {
+      pipeline.push({ $match: matchStage })
+    }
 
     // Sorting logic based on the field
     if (sortBy === "recommendations") {
@@ -45,7 +67,11 @@ export const getAllBloggers = async (req: Request, res: Response) => {
       })
     } else {
       const sortOptions: { [key: string]: SortOrder } = {}
-      sortOptions[sortBy as string] = sortOrder === "asc" ? 1 : -1
+      if (sortBy) {
+        sortOptions[sortBy as string] = sortOrder === "asc" ? 1 : -1
+      } else {
+        sortOptions["_id"] = 1 // Default sort by insertion order
+      }
       pipeline.push({
         $sort: sortOptions
       })
@@ -61,7 +87,7 @@ export const getAllBloggers = async (req: Request, res: Response) => {
 
     // Pagination
     pipeline.push({
-      $skip: (pageNumber - 1) * pageSize
+      $skip: pageNumber * pageSize // Adjusted for zero-indexed pagination
     })
     pipeline.push({
       $limit: pageSize
@@ -84,7 +110,7 @@ export const getAllBloggers = async (req: Request, res: Response) => {
 
     const bloggers = await Blogger.aggregate(pipeline)
 
-    const totalBloggers = await Blogger.countDocuments()
+    const totalBloggers = await Blogger.countDocuments(matchStage) // Use matchStage for total count
 
     res.status(200).json({
       data: bloggers,

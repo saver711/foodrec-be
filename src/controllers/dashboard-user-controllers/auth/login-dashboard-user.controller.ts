@@ -54,26 +54,26 @@ export const loginDashboardUser = async (req: Request, res: Response) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 1 * 60 * 1000
+      // maxAge: 1 * 60 * 1000
 
-      // maxAge:
-      //   (+process.env.ACCESS_TOKEN_EXPIRES_IN!.charAt(0) || 1) *
-      //   24 *
-      //   60 *
-      //   60 *
-      //   1000 // 1 day
+      maxAge:
+        (+process.env.ACCESS_TOKEN_EXPIRES_IN!.charAt(0) || 1) *
+        24 *
+        60 *
+        60 *
+        1000 // 1 day
     })
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 2 * 60 * 1000 // 3 minutes in milliseconds
-      // maxAge:
-      //   (+process.env.REFRESH_TOKEN_EXPIRES_IN!.charAt(0) || 7) *
-      //   24 *
-      //   60 *
-      //   60 *
-      //   1000 // 7 days
+      // maxAge: 2 * 60 * 1000 // 2 minutes in milliseconds
+      maxAge:
+        (+process.env.REFRESH_TOKEN_EXPIRES_IN!.charAt(0) || 7) *
+        24 *
+        60 *
+        60 *
+        1000 // 7 days
     })
 
     res.json({
