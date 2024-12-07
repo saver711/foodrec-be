@@ -19,6 +19,6 @@
       "@utils/*": ["src/utils/*"]
     }
   },
-  "include": ["src", "index.d.ts"],
+  "include": ["src", "index.d.ts", "src/docs/swagger.ts"],
   "exclude": ["node_modules"]
 }

@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
-    "start": "ts-node --respawn --transpile-only -r tsconfig-paths/register src/index.ts"
+    "dev": "npm run swagger-autogen && ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
+    "start": "ts-node --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
+    "swagger-autogen": "ts-node -r tsconfig-paths/register src/docs/swagger.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,8 +20,11 @@
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.8.2",
+    "mongoose-to-swagger": "^1.5.1",
     "multer": "^1.4.5-lts.1",
-    "pino": "^9.4.0"
+    "pino": "^9.4.0",
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -28,6 +32,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.7.4",
+    "@types/swagger-ui-express": "^4.1.7",
     "@types/uuid": "^10.0.0",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",

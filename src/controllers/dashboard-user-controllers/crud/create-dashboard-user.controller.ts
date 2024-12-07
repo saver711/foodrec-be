@@ -47,7 +47,7 @@ export const createDashboardUser = async (
       name,
       email,
       password: hashedPassword,
-      role // Frontend sends the role
+      role
     })
 
     await newUser.save()

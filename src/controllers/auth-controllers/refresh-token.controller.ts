@@ -6,14 +6,17 @@ import RefreshToken from "../../models/refresh-token.model"
 // Refresh token function using HTTP-only cookies
 export const refreshToken = async (req: Request, res: Response) => {
   // Get the refresh token from the cookies
-  // const requestRefreshToken = req.header("Authorization")?.split(" ")[1] // Bearer token // Temp for Postman
+  const tokenFromAuthHeader = req.header("Authorization")?.split(" ")[1] // Bearer token // Temp for Postman
+  const { refreshToken: tokenFromBody } = req.body
 
   const cookies = req.headers.cookie?.split(";").reduce((acc: any, cookie) => {
     const [key, value] = cookie.trim().split("=")
     acc[key] = value
     return acc
   }, {})
-  const requestRefreshToken = cookies?.refreshToken
+  const tokenFromCookies = cookies?.refreshToken
+  const requestRefreshToken =
+    tokenFromAuthHeader || tokenFromBody || tokenFromCookies
 
   if (!requestRefreshToken) {
     return res.status(403).json({

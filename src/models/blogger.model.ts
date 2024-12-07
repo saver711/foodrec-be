@@ -7,6 +7,7 @@ export interface IBlogger extends Document {
   name: string
   bio: string
   image: string
+  // TODO: platform should be enum
   socialLinks: { platform: string; url: string }[]
   recommendations: mongoose.Types.ObjectId[]
   followers: mongoose.Types.ObjectId[]
