@@ -1,4 +1,5 @@
 import { createRecommendation } from "@controllers/recommendation-controllers/crud/create-recommendation.controller"
+import { deleteMultiRecommendations } from "@controllers/recommendation-controllers/crud/delete-multi-recommendations.controller"
 import { deleteRecommendation } from "@controllers/recommendation-controllers/crud/delete-recommendation.controller"
 import { getAllRecommendations } from "@controllers/recommendation-controllers/crud/get-all-recommendations.controller"
 import { getRecommendationById } from "@controllers/recommendation-controllers/crud/get-recommendation-by-id.controller"
@@ -214,6 +215,20 @@ router.delete(
   },
   (req: Request, res: Response, next: NextFunction) => {
     deleteRecommendation(req, res)
+  }
+)
+
+// Delete multiple recommendations
+router.delete(
+  "/",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next)
+  },
+  (req: Request, res: Response, next: NextFunction) => {
+    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR])(req, res, next)
+  },
+  (req: Request, res: Response) => {
+    deleteMultiRecommendations(req, res)
   }
 )
 

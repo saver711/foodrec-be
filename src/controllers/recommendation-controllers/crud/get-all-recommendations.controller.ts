@@ -6,7 +6,7 @@ import { Document, ObjectId, SortOrder } from "mongoose"
 // Get all recommendations, with optional sorting by nearest location
 export const getAllRecommendations = async (req: Request, res: Response) => {
   const {
-    page = 0, // Default to 0 for zero-indexed pagination
+    page = 1,
     perPage = 10,
     sortBy,
     sortOrder,
@@ -52,7 +52,7 @@ export const getAllRecommendations = async (req: Request, res: Response) => {
 
       let query = Recommendation.find(filter)
         .sort(sortOptions)
-        .skip(pageNumber * pageSize) // Adjusted to start from 0
+        .skip((pageNumber - 1) * pageSize) // Adjusted for one-indexed pagination
         .limit(pageSize)
 
       // Dynamically populate fields if 'populate' query parameter is provided
@@ -131,7 +131,7 @@ export const getAllRecommendations = async (req: Request, res: Response) => {
         }
       },
       { $sort: { distance: 1 } },
-      { $skip: pageNumber * pageSize }, // Adjusted for zero-indexed pagination
+      { $skip: (pageNumber - 1) * pageSize }, // Adjusted for one-indexed pagination
       { $limit: pageSize }
     ])) as (Document<unknown, {}, IRecommendation> &
       IRecommendation & { _id: ObjectId })[]
