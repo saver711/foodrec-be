@@ -2,6 +2,7 @@ import { deleteFilesFromGCS } from "@utils/gcs.util"
 import mongoose, { Document, Schema } from "mongoose"
 import Blogger from "./blogger.model"
 import Category from "./category.model"
+import Location from "./location.model"
 import Restaurant from "./restaurant.model"
 
 export interface IRecommendation extends Document {
@@ -36,48 +37,91 @@ const RecommendationSchema: Schema = new Schema<IRecommendation>({
   url: { type: String, required: true }
 })
 
-// Post hook to handle cleanup after recommendation deletion
+const deletedRecommendationsMap = new Map<string, IRecommendation[]>()
+
+// Utility function to remove references
+const removeReferences = async (recommendationIds: string[]) => {
+  await Blogger.updateMany(
+    { recommendations: { $in: recommendationIds } },
+    { $pull: { recommendations: { $in: recommendationIds } } }
+  )
+
+  await Restaurant.updateMany(
+    { recommendations: { $in: recommendationIds } },
+    { $pull: { recommendations: { $in: recommendationIds } } }
+  )
+
+  await Location.updateMany(
+    { recommendations: { $in: recommendationIds } },
+    { $pull: { recommendations: { $in: recommendationIds } } }
+  )
+
+  await Category.updateMany(
+    { recommendations: { $in: recommendationIds } },
+    { $pull: { recommendations: { $in: recommendationIds } } }
+  )
+}
+
+// Utility function to delete images
+const deleteImages = async (recommendations: IRecommendation[]) => {
+  for (const recommendation of recommendations) {
+    if (recommendation.mealImages && recommendation.mealImages.length > 0) {
+      const fileNames = recommendation.mealImages
+        .map(img => getFileNameFromUrl(img))
+        .filter((fileName): fileName is string => fileName !== undefined)
+      await deleteFilesFromGCS(fileNames, "recommendations")
+    }
+  }
+}
+
+// Pre hook for deleteMany
+RecommendationSchema.pre("deleteMany", async function () {
+  const recommendations = await this.model.find(this.getFilter())
+  const key = JSON.stringify(this.getFilter())
+  deletedRecommendationsMap.set(key, recommendations)
+})
+
+// Post hook for deleteMany
+RecommendationSchema.post("deleteMany", async function () {
+  try {
+    const filterKey = JSON.stringify(this.getFilter())
+    const recommendations = deletedRecommendationsMap.get(filterKey)
+
+    if (!recommendations || recommendations.length === 0) {
+      console.log("No recommendations found for cleanup.")
+      return
+    }
+
+    const recommendationIds = recommendations.map(rec => rec._id.toString())
+
+    // Remove references and delete images
+    await removeReferences(recommendationIds)
+    await deleteImages(recommendations)
+
+    // Clean up the map
+    deletedRecommendationsMap.delete(filterKey)
+  } catch (err) {
+    console.error("Error during post-delete cleanup:", err)
+  }
+})
+
+// Post hook for findOneAndDelete
 RecommendationSchema.post(
-  ["findOneAndDelete", "deleteMany"],
+  "findOneAndDelete",
   async function (doc: IRecommendation) {
     try {
-      const recommendations: IRecommendation[] = doc
-        ? [doc]
-        : await this.model.find(this.getFilter())
-
-      const recommendationIds = recommendations.map(rec => rec._id.toString())
-
-      // Remove recommendations from bloggers
-      await Blogger.updateMany(
-        { recommendations: { $in: recommendationIds } },
-        { $pull: { recommendations: { $in: recommendationIds } } }
-      )
-
-      // Loop through the recommendations for additional cleanup
-      for (const recommendation of recommendations) {
-        // Delete recommendation images from GCS
-        if (recommendation.mealImages.length > 0) {
-          const fileNames = recommendation.mealImages
-            .map(img => getFileNameFromUrl(img))
-            .filter((fileName): fileName is string => fileName !== undefined)
-
-          if (fileNames.length > 0) {
-            await deleteFilesFromGCS(fileNames, "recommendations")
-          }
-        }
-
-        // Remove recommendation from associated restaurant
-        await Restaurant.updateMany(
-          { recommendations: recommendation._id },
-          { $pull: { recommendations: recommendation._id } }
-        )
-
-        // Remove recommendation from associated categories
-        await Category.updateMany(
-          { recommendations: recommendation._id },
-          { $pull: { recommendations: recommendation._id } }
-        )
+      if (!doc) {
+        console.error("No recommendation document found for post-delete hook.")
+        return
       }
+
+      const recommendationId = doc._id.toString()
+
+      // Remove references and delete images
+      await removeReferences([recommendationId])
+      await deleteImages([doc])
+
+      console.log(`Cleanup complete for recommendation: ${recommendationId}`)
     } catch (err) {
       console.error("Error during recommendation post-delete cleanup:", err)
     }
