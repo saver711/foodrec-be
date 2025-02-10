@@ -59,21 +59,21 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
 
-const seedSuperAdmin = async () => {
-  const superAdmin = await DashboardUser.findOne({ email: "super@super.com" })
-  if (!superAdmin) {
-    const hashedPassword = await bcrypt.hash(
-      process.env.SUPER_ADMIN_PASSWORD!,
-      10
-    )
-    await DashboardUser.create({
-      name: "Super",
-      email: "super@super.com",
-      password: hashedPassword,
-      role: DashboardUserRole.SUPER_ADMIN
-    })
-    console.log("super@super.com user created.")
-  }
-}
+// const seedSuperAdmin = async () => {
+//   const superAdmin = await DashboardUser.findOne({ email: "super@super.com" })
+//   if (!superAdmin) {
+//     const hashedPassword = await bcrypt.hash(
+//       process.env.SUPER_ADMIN_PASSWORD!,
+//       10
+//     )
+//     await DashboardUser.create({
+//       name: "Super",
+//       email: "super@super.com",
+//       password: hashedPassword,
+//       role: DashboardUserRole.SUPER_ADMIN
+//     })
+//     console.log("super@super.com user created.")
+//   }
+// }
 
-seedSuperAdmin()
+// seedSuperAdmin()

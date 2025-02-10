@@ -79,7 +79,7 @@ export const getAllRecommendations = async (req: Request, res: Response) => {
 
     if (_id) filter._id = _id
     if (mealName) filter.mealName = { $regex: mealName, $options: "i" }
-    if (rating) {
+    if (rating && (minRating !== MIN_RATING || maxRating !== MAX_RATING)) {
       filter.rating = {
         $gte: minRating,
         $lte: maxRating
