@@ -1,16 +1,11 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import Location from "@models/location.model"
+import { ILocation } from "@models/location.model"
 import Restaurant from "@models/restaurant.model"
 import { uploadFileToGCS } from "@utils/gcs.util"
 import { Request, Response } from "express"
 
 // Type for location data
-interface LocationData {
-  name: string
-  address: string
-  coordinates: { type: string; coordinates: number[] }
-  googleMapLink: string
-}
 
 // Add a restaurant
 export const createRestaurant = async (req: Request, res: Response) => {
@@ -45,7 +40,7 @@ export const createRestaurant = async (req: Request, res: Response) => {
     await restaurant.save()
 
     // Attach locations to the restaurant
-    const locationPromises = locations.map((locationData: LocationData) => {
+    const locationPromises = locations.map((locationData: ILocation) => {
       const location = new Location({
         ...locationData,
         restaurant: restaurant._id

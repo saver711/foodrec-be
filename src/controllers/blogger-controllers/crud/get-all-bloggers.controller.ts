@@ -1,9 +1,10 @@
 import Blogger from "@models/blogger.model"
 import { Request, Response } from "express"
 import { SortOrder } from "mongoose" // Import SortOrder type
+let showErr = 1
 export const getAllBloggers = async (req: Request, res: Response) => {
   const {
-    page = 0,
+    page = 1,
     perPage = 10,
     sortBy,
     sortOrder = "asc",
@@ -13,6 +14,13 @@ export const getAllBloggers = async (req: Request, res: Response) => {
   } = req.query // Default page to 0
 
   try {
+    // if (showErr < 3) {
+    //   showErr++
+    //   return res.status(400).json({
+    //     errorCode: ErrorCode.ACCESS_DENIED,
+    //     message: "Failed to fetch bloggers"
+    //   })
+    // }
     const pageNumber = +page
     const pageSize = +perPage
 
@@ -87,7 +95,7 @@ export const getAllBloggers = async (req: Request, res: Response) => {
 
     // Pagination
     pipeline.push({
-      $skip: pageNumber * pageSize // Adjusted for zero-indexed pagination
+      $skip: (pageNumber - 1) * pageSize
     })
     pipeline.push({
       $limit: pageSize

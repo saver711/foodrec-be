@@ -1,0 +1,4 @@
+export enum LocationsCriteria {
+  ALL_LOCATIONS = "ALL_LOCATIONS",
+  SPECIFIC_LOCATIONS = "SPECIFIC_LOCATIONS"
+}

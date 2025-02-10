@@ -973,16 +973,10 @@
         }
       }
     },
-    "/api/bloggers/{bloggerId}": {
-      "get": {
+    "/api/bloggers/bloggersIds": {
+      "post": {
         "description": "",
         "parameters": [
-          {
-            "name": "bloggerId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "cookie",
             "in": "header",
@@ -997,11 +991,26 @@
             "name": "populate",
             "in": "query",
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "bloggersIds": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
@@ -1213,16 +1222,12 @@
             "description": "Internal Server Error"
           }
         }
-      },
-      "get": {
+      }
+    },
+    "/api/restaurants/restaurantsIds": {
+      "post": {
         "description": "",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "cookie",
             "in": "header",
@@ -1237,11 +1242,26 @@
             "name": "populate",
             "in": "query",
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "restaurantsIds": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
@@ -1313,6 +1333,70 @@
         }
       }
     },
+    "/api/locations/restaurant/{restaurantId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "restaurantId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "cookie",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "perPage",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "populate",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/recommendations/": {
       "post": {
         "description": "",
@@ -1333,19 +1417,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "bloggerId": {
+                "locationsCriteria": {
                   "example": "any"
                 },
-                "quote": {
-                  "example": "any"
-                },
-                "rating": {
-                  "example": "any"
-                },
-                "date": {
-                  "example": "any"
-                },
-                "url": {
+                "locations": {
                   "example": "any"
                 },
                 "mealName": {
@@ -1354,13 +1429,25 @@
                 "mealDescription": {
                   "example": "any"
                 },
+                "quote": {
+                  "example": "any"
+                },
+                "url": {
+                  "example": "any"
+                },
+                "rating": {
+                  "example": "any"
+                },
+                "date": {
+                  "example": "any"
+                },
+                "bloggerId": {
+                  "example": "any"
+                },
+                "categoriesIds": {
+                  "example": "any"
+                },
                 "restaurantId": {
-                  "example": "any"
-                },
-                "categories": {
-                  "example": "any"
-                },
-                "locations": {
                   "example": "any"
                 }
               }
@@ -1449,17 +1536,22 @@
             "type": "string"
           },
           {
-            "name": "restaurantIds",
+            "name": "date",
             "in": "query",
             "type": "string"
           },
           {
-            "name": "bloggerIds",
+            "name": "restaurantsIds",
             "in": "query",
             "type": "string"
           },
           {
-            "name": "categoryIds",
+            "name": "bloggersIds",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "categories",
             "in": "query",
             "type": "string"
           }
@@ -1467,6 +1559,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
@@ -1746,6 +1841,11 @@
           },
           {
             "name": "sortOrder",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "name",
             "in": "query",
             "type": "string"
           }

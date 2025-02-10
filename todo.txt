@@ -1,0 +1,2 @@
+- when editing restaurant if we are going to add new location i should find all recommendations that relevant to this restaurant and assign them to the new location if the location property in these recommendations is set to ALL_LOCATIONS
+- make edit recommendation same as create (regarding the location)

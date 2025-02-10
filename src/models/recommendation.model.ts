@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from "mongoose"
 import Blogger from "./blogger.model"
 import Category from "./category.model"
 import Location from "./location.model"
+import { LocationsCriteria } from "./locations/locations-criteria.enum"
 import Restaurant from "./restaurant.model"
 
 export interface IRecommendation extends Document {
@@ -16,26 +17,52 @@ export interface IRecommendation extends Document {
   restaurant: mongoose.Types.ObjectId
   categories: mongoose.Types.ObjectId[]
   blogger: mongoose.Types.ObjectId
+
+  locationsCriteria: LocationsCriteria
+
+  // changed to array of ObjectIds
+  /* CHANGED: now always an array of valid location IDs */
+  locations: mongoose.Types.ObjectId[]
 }
 
-const RecommendationSchema: Schema = new Schema<IRecommendation>({
-  quote: { type: String, required: true },
-  rating: { type: Number, default: null }, // Optional rating
-  blogger: { type: Schema.Types.ObjectId, ref: "Blogger", required: true },
-  restaurant: {
-    type: Schema.Types.ObjectId,
-    ref: "Restaurant",
-    required: true
-  },
-  mealName: { type: String, required: true, unique: true },
-  mealDescription: { type: String },
-  mealImages: [{ type: String, default: [] }],
-  categories: [
-    { type: Schema.Types.ObjectId, ref: "Category", required: true }
-  ],
-  date: { type: Date, default: Date.now },
-  url: { type: String, required: true }
-})
+const RecommendationSchema: Schema<IRecommendation> =
+  new Schema<IRecommendation>({
+    quote: { type: String, required: true },
+    rating: { type: Number, default: null },
+    blogger: { type: Schema.Types.ObjectId, ref: "Blogger", required: true },
+    restaurant: {
+      type: Schema.Types.ObjectId,
+      ref: "Restaurant",
+      required: true
+    },
+    mealName: { type: String, required: true, unique: true },
+    mealDescription: { type: String },
+    mealImages: [{ type: String, default: [] }],
+    categories: [
+      { type: Schema.Types.ObjectId, ref: "Category", required: true }
+    ],
+
+    /* CHANGED: new field for location criteria */
+    locationsCriteria: {
+      type: String,
+      enum: [
+        LocationsCriteria.ALL_LOCATIONS,
+        LocationsCriteria.SPECIFIC_LOCATIONS
+      ],
+      required: true
+    },
+
+    /* CHANGED: always an array of ObjectIds, referencing Location */
+    locations: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Location"
+      }
+    ],
+
+    date: { type: Date, default: Date.now },
+    url: { type: String, required: true }
+  })
 
 const deletedRecommendationsMap = new Map<string, IRecommendation[]>()
 

@@ -4,6 +4,7 @@ import mongoose, { Schema, Document } from "mongoose"
 export interface ILocation extends Document {
   name: string
   address: string
+  googleMapsUrl: string
   coordinates: { type: string; coordinates: [number, number] } // Geospatial field with [longitude, latitude]
   restaurant: mongoose.Types.ObjectId // The restaurant to which this location belongs
   recommendations: mongoose.Types.ObjectId[] // List of associated recommendations
@@ -12,6 +13,7 @@ export interface ILocation extends Document {
 const LocationSchema: Schema = new Schema({
   name: { type: String, required: true },
   address: { type: String, required: true },
+  googleMapsUrl: { type: String, required: true },
   coordinates: {
     type: { type: String, default: "Point" },
     coordinates: { type: [Number], required: true }

@@ -1,7 +1,7 @@
 import { createRestaurant } from "@controllers/restaurant-controllers/crud/create-restaurant.controller"
 import { deleteRestaurant } from "@controllers/restaurant-controllers/crud/delete-restaurant.controller"
 import { getAllRestaurants } from "@controllers/restaurant-controllers/crud/get-all-restaurants.controller"
-import { getRestaurantById } from "@controllers/restaurant-controllers/crud/get-restaurant-by-id.controller"
+import { getRestaurantsByIds } from "@controllers/restaurant-controllers/crud/get-restaurants-by-ids.controller"
 import { updateRestaurant } from "@controllers/restaurant-controllers/crud/update-restaurant.controller"
 import { UserRole } from "@models/user-role.enum"
 import { upload } from "@utils/gcs.util"
@@ -73,8 +73,8 @@ router.delete(
 )
 
 // Get Restaurant by id
-router.get(
-  "/:id",
+router.post(
+  "/restaurantsIds",
   (req: Request, res: Response, next: NextFunction) => {
     authenticate(req, res, next)
   },
@@ -86,7 +86,7 @@ router.get(
     )
   },
   (req: Request, res: Response, next: NextFunction) => {
-    getRestaurantById(req, res)
+    getRestaurantsByIds(req, res)
   }
 )
 

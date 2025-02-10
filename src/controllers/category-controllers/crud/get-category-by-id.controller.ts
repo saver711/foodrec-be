@@ -14,7 +14,7 @@ export const getCategoryById = async (req: Request, res: Response) => {
     if (populate) {
       const fieldsToPopulate = (populate as string).split(",")
       fieldsToPopulate.forEach(field => {
-        query = query.populate(field.trim())
+        query = query.populate(field.trim()) as unknown as typeof query
       })
     }
 

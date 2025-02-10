@@ -30,7 +30,6 @@ export const deleteRestaurant = async (req: Request, res: Response) => {
       await Recommendation.deleteMany({
         recommendation: { $in: recommendationsIds }
       })
-      console.log("recommendations deleted")
 
       // Find all recommendations associated with those recommendations
       const recommendations = await Recommendation.find({
@@ -59,7 +58,7 @@ export const deleteRestaurant = async (req: Request, res: Response) => {
 
     res.status(200).json({
       message:
-        "Restaurant and related recommendations and recommendations deleted successfully"
+        "Restaurant and related recommendations and locations deleted successfully"
     })
   } catch (error) {
     console.error("Error deleting restaurant:", error) // Log the exact error

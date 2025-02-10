@@ -1,6 +1,6 @@
 import { createCategory } from "@controllers/category-controllers/crud/create-category.controller"
 import { deleteCategory } from "@controllers/category-controllers/crud/delete-category.controller"
-import { getAllCategories } from "@controllers/category-controllers/crud/get-all-category.controller"
+import { getAllCategories } from "@controllers/category-controllers/crud/get-all-categories.controller"
 import { getCategoryById } from "@controllers/category-controllers/crud/get-category-by-id.controller"
 import { updateCategory } from "@controllers/category-controllers/crud/update-category.controller"
 import { authenticate, authorizeUser } from "@middlewares/auth.middleware"

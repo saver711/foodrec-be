@@ -4,18 +4,19 @@ import { SortOrder } from "mongoose"
 
 // Get all categories, with sorting by number of recommendations
 export const getAllCategories = async (req: Request, res: Response) => {
-  const {
-    page = 1,
-    perPage = 10,
-    sortBy = "name",
-    sortOrder = "asc"
-  } = req.query
+  const { page = 1, perPage = 10, sortBy = "name", sortOrder, name } = req.query
 
   try {
     const pageNumber = +page
     const pageSize = +perPage
 
     const pipeline: any[] = []
+
+    if (name) {
+      pipeline.push({
+        $match: { name: { $regex: name, $options: "i" } }
+      })
+    }
 
     if (sortBy === "recommendations") {
       pipeline.push({
@@ -41,7 +42,9 @@ export const getAllCategories = async (req: Request, res: Response) => {
 
     const categories = await Category.aggregate(pipeline)
 
-    const totalCategories = await Category.countDocuments()
+    const totalCategories = await Category.countDocuments(
+      name ? { name: { $regex: name, $options: "i" } } : {}
+    )
 
     res.status(200).json({
       data: categories,

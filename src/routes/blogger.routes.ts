@@ -1,7 +1,7 @@
 import { createBlogger } from "@controllers/blogger-controllers/crud/create-blogger.controller"
 import { deleteBlogger } from "@controllers/blogger-controllers/crud/delete-blogger.controller"
 import { getAllBloggers } from "@controllers/blogger-controllers/crud/get-all-bloggers.controller"
-import { getBloggerById } from "@controllers/blogger-controllers/crud/get-blogger-by-id.controller"
+import { getBloggersByIds } from "@controllers/blogger-controllers/crud/get-bloggers-by-ids.controller"
 import { updateBlogger } from "@controllers/blogger-controllers/crud/update-blogger.controller"
 import { UserRole } from "@models/user-role.enum"
 import { upload } from "@utils/gcs.util"
@@ -69,10 +69,8 @@ router.delete(
     deleteBlogger(req, res, next)
   }
 )
-
-// Get a blogger by ID (SUPER_ADMIN & AUDITOR)
-router.get(
-  "/:bloggerId",
+router.post(
+  "/bloggersIds",
   (req: Request, res: Response, next: NextFunction) => {
     authenticate(req, res, next)
   },
@@ -84,8 +82,7 @@ router.get(
     )
   },
   (req: Request, res: Response, next: NextFunction) => {
-    getBloggerById(req, res)
+    getBloggersByIds(req, res)
   }
 )
-
 export default router

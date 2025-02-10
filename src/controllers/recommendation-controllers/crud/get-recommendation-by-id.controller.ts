@@ -1,6 +1,6 @@
-import { Request, Response } from "express"
-import Recommendation from "@models/recommendation.model"
 import { ErrorCode } from "@models/api/error-code.enum"
+import Recommendation from "@models/recommendation.model"
+import { Request, Response } from "express"
 
 // Fetch a recommendation by ID and dynamically populate fields
 export const getRecommendationById = async (req: Request, res: Response) => {
@@ -14,7 +14,7 @@ export const getRecommendationById = async (req: Request, res: Response) => {
     if (populate) {
       const fieldsToPopulate = (populate as string).split(",") // Split the fields by comma
       fieldsToPopulate.forEach(field => {
-        query = query.populate(field.trim()) // Dynamically apply population for each field
+        query = query.populate(field.trim()) as unknown as typeof query // Dynamically apply population for each field
       })
     }
 
