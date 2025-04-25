@@ -1116,6 +1116,11 @@
             "name": "populate",
             "in": "query",
             "type": "string"
+          },
+          {
+            "name": "_id",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
@@ -1703,10 +1708,13 @@
                 "mealDescription": {
                   "example": "any"
                 },
-                "categories": {
+                "categoriesIds": {
                   "example": "any"
                 },
                 "restaurantId": {
+                  "example": "any"
+                },
+                "locationsCriteria": {
                   "example": "any"
                 },
                 "locations": {
