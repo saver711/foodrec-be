@@ -90,3 +90,25 @@ export const deleteFilesFromGCS = async (
     throw err // Throw error in case any delete operation fails
   }
 }
+
+const getFileNameFromUrl = (url: string) => url.split("/").pop()
+
+export const deleteFilesWrapper = async <T>(entities: T[], mediaKey: keyof T, storageFolderName: string) => {
+  for (const entity of entities) {
+    console.log({ entity })
+    if (entity[mediaKey]) {
+      console.log({ mediaKey })
+      if (Array.isArray(entity[mediaKey])) {
+        console.log("array")
+        const fileNames = entity[mediaKey].map((file: string) => getFileNameFromUrl(file))
+          .filter((fileName): fileName is string => fileName !== undefined)
+        await deleteFilesFromGCS(fileNames, storageFolderName)
+      } else {
+        const fileName = getFileNameFromUrl(entity[mediaKey] as string)
+        console.log({ fileName })
+        await deleteFileFromGCS(`${storageFolderName}/${fileName}`)
+      }
+
+    }
+  }
+}

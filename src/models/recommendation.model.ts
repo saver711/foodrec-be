@@ -1,4 +1,4 @@
-import { deleteFilesFromGCS } from "@utils/gcs.util"
+import { deleteFilesFromGCS, deleteFilesWrapper } from "@utils/gcs.util"
 import mongoose, { Document, Schema } from "mongoose"
 import Blogger from "./blogger.model"
 import Category from "./category.model"
@@ -89,18 +89,6 @@ const removeReferences = async (recommendationIds: string[]) => {
   )
 }
 
-// Utility function to delete images
-const deleteImages = async (recommendations: IRecommendation[]) => {
-  for (const recommendation of recommendations) {
-    if (recommendation.mealImages && recommendation.mealImages.length > 0) {
-      const fileNames = recommendation.mealImages
-        .map(img => getFileNameFromUrl(img))
-        .filter((fileName): fileName is string => fileName !== undefined)
-      await deleteFilesFromGCS(fileNames, "recommendations")
-    }
-  }
-}
-
 // Pre hook for deleteMany
 RecommendationSchema.pre("deleteMany", async function () {
   const recommendations = await this.model.find(this.getFilter())
@@ -123,7 +111,7 @@ RecommendationSchema.post("deleteMany", async function () {
 
     // Remove references and delete images
     await removeReferences(recommendationIds)
-    await deleteImages(recommendations)
+    await deleteFilesWrapper(recommendations, "mealImages", "recommendations")
 
     // Clean up the map
     deletedRecommendationsMap.delete(filterKey)
@@ -146,7 +134,7 @@ RecommendationSchema.post(
 
       // Remove references and delete images
       await removeReferences([recommendationId])
-      await deleteImages([doc])
+      await deleteFilesWrapper([doc], 'mealImages', 'recommendations')
 
       console.log(`Cleanup complete for recommendation: ${recommendationId}`)
     } catch (err) {
@@ -155,7 +143,7 @@ RecommendationSchema.post(
   }
 )
 
-const getFileNameFromUrl = (url: string) => url.split("/").pop()
+
 
 export default mongoose.model<IRecommendation>(
   "Recommendation",

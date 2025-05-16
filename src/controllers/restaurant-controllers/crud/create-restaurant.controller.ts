@@ -10,17 +10,18 @@ import { Request, Response } from "express"
 // Add a restaurant
 export const createRestaurant = async (req: Request, res: Response) => {
   const { name, locations } = req.body
+  const file = req.file
 
-  const existingRestaurant = await Restaurant.findOne({ name })
-  if (existingRestaurant) {
+  // Validate name
+  if (!name || typeof name !== "string" || !name.trim()) {
     return res.status(400).json({
-      message: "Restaurant with this name already exists",
-      errorCode: ErrorCode.RESTAURANT_ALREADY_EXISTS
+      message: "Restaurant name is required",
+      errorCode: ErrorCode.NAME_IS_REQUIRED
     })
   }
 
-  // Validate if locations exist
-  if (!locations || locations.length === 0) {
+  // Validate locations
+  if (!locations || !Array.isArray(locations) || locations.length === 0) {
     return res.status(400).json({
       message: "At least one location is required to create a restaurant",
       errorCode: ErrorCode.AT_LEAST_ONE_LOCATION_REQUIRED
@@ -28,39 +29,47 @@ export const createRestaurant = async (req: Request, res: Response) => {
   }
 
   try {
-    // If image is uploaded
-    let imageUrl = ""
-    const imageFile = req.file
-    if (imageFile) {
-      imageUrl = await uploadFileToGCS(imageFile, "restaurants") // Specify folder
+    // Check for existing restaurant
+    const existingRestaurant = await Restaurant.findOne({ name })
+    if (existingRestaurant) {
+      return res.status(400).json({
+        message: "Restaurant with this name already exists",
+        errorCode: ErrorCode.RESTAURANT_ALREADY_EXISTS
+      })
+    }
+
+    // Upload logo if provided
+    let logoUrl = ""
+    if (file) {
+      logoUrl = await uploadFileToGCS(file, "restaurants")
     }
 
     // Create restaurant
-    const restaurant = new Restaurant({ name, logo: imageUrl })
-    await restaurant.save()
-
-    // Attach locations to the restaurant
-    const locationPromises = locations.map((locationData: ILocation) => {
-      const location = new Location({
-        ...locationData,
-        restaurant: restaurant._id
-      })
-      return location.save()
+    const restaurant = new Restaurant({
+      name,
+      logo: logoUrl,
     })
-    const savedLocations = await Promise.all(locationPromises)
-
-    // Update restaurant with saved locations
-    restaurant.locations = savedLocations.map(location => location._id)
     await restaurant.save()
 
-    res.status(201).json({
-      message: "Restaurant added successfully",
+    // Save locations and link to restaurant
+    const locationDocs = await Promise.all(
+      locations.map((loc: any) => {
+        const location = new Location({ ...loc, restaurant: restaurant._id })
+        return location.save()
+      })
+    )
+    restaurant.locations = locationDocs.map(loc => loc._id)
+    await restaurant.save()
+
+    return res.status(201).json({
+      message: "Restaurant created successfully",
       data: restaurant
     })
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to add restaurant",
+    return res.status(500).json({
+      message: "Failed to create restaurant",
       error
     })
   }
 }
+

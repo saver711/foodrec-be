@@ -11,12 +11,31 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
     sortOrder = "asc", // No default should be added for sortOrder
     lat,
     long,
-    populate
-  } = req.query
+    populate,
+    name, // Add name filter
+    _id // Add _id filter
+  } = req.query as {
+    page?: number
+    perPage?: number
+    sortBy?: string
+    sortOrder?: string
+    lat?: number
+    long?: number
+    populate?: string
+    name?: string
+    _id?: string
+  }
 
   try {
     const pageNumber = +page
     const pageSize = +perPage
+
+    // Build filter object
+    const filter: { [key: string]: any } = {}
+    // For partial _id search, we will match on a stringified _id in the pipeline
+    let idRegex = undefined
+    if (_id) idRegex = { $regex: _id, $options: "i" }
+    if (name) filter.name = { $regex: name, $options: "i" } // Partial, case-insensitive match
 
     // Aggregation pipeline for sorting by nearest location
     if (sortBy === "nearest" && lat && long) {
@@ -33,6 +52,10 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
             spherical: true
           }
         },
+        // Convert _id to string for regex search
+        (idRegex ? { $addFields: { _idStr: { $toString: "$_id" } } } : undefined),
+        // Inject filter after geoNear
+        Object.keys(filter).length || idRegex ? { $match: { ...filter, ...(idRegex ? { _idStr: idRegex } : {}) } } : undefined,
         {
           $lookup: {
             from: "restaurants",
@@ -79,7 +102,9 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
         })
       }
 
-      const restaurants = await Location.aggregate(pipeline)
+      // Remove undefined stages (if filter is empty)
+      const filteredPipeline = pipeline.filter(Boolean)
+      const restaurants = await Location.aggregate(filteredPipeline)
 
       const totalRestaurants = restaurants.length
 
@@ -95,6 +120,15 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
     } else {
       // Aggregation pipeline for sorting by recommendations count or recommendations
       const pipeline: any[] = []
+
+      // Convert _id to string for regex search
+      if (idRegex) {
+        pipeline.push({ $addFields: { _idStr: { $toString: "$_id" } } })
+      }
+      // Add filter at the beginning if present
+      if (Object.keys(filter).length || idRegex) {
+        pipeline.push({ $match: { ...filter, ...(idRegex ? { _idStr: idRegex } : {}) } })
+      }
 
       if (sortBy === "recommendations") {
         pipeline.push({
@@ -165,7 +199,8 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
       }
 
       const restaurants = await Restaurant.aggregate(pipeline)
-      const totalRestaurants = await Restaurant.countDocuments()
+      // Count only documents matching the filter
+      const totalRestaurants = await Restaurant.countDocuments(filter)
 
       return res.status(200).json({
         data: restaurants,
