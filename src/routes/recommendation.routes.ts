@@ -6,7 +6,7 @@ import { getRecommendationById } from "@controllers/recommendation-controllers/c
 import { updateRecommendation } from "@controllers/recommendation-controllers/crud/update-recommendation.controller"
 import { authenticate, authorizeUser } from "@middlewares/auth.middleware"
 import { UserRole } from "@models/user-role.enum"
-import { upload } from "@utils/gcs.util"
+import { upload } from "@utils/s3.util"
 import express, { NextFunction, Request, Response } from "express"
 
 const router = express.Router()
@@ -29,16 +29,16 @@ router.post(
 // Get a recommendation by ID
 router.get(
   "/:id",
-  (req: Request, res: Response, next: NextFunction) => {
-    authenticate(req, res, next)
-  },
-  (req: Request, res: Response, next: NextFunction) => {
-    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
-      req,
-      res,
-      next
-    )
-  },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authenticate(req, res, next)
+  // },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+  //     req,
+  //     res,
+  //     next
+  //   )
+  // },
   (req: Request, res: Response, next: NextFunction) => {
     getRecommendationById(req, res)
   }
@@ -189,16 +189,16 @@ router.put(
  */
 router.get(
   "/",
-  (req: Request, res: Response, next: NextFunction) => {
-    authenticate(req, res, next)
-  },
-  (req: Request, res: Response, next: NextFunction) => {
-    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
-      req,
-      res,
-      next
-    )
-  },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authenticate(req, res, next)
+  // },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+  //     req,
+  //     res,
+  //     next
+  //   )
+  // },
   (req: Request, res: Response, next: NextFunction) => {
     getAllRecommendations(req, res)
   }

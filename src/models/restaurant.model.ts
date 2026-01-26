@@ -1,6 +1,6 @@
 import Location from "@models/location.model"
 import Recommendation from "@models/recommendation.model"
-import { deleteFileFromGCS, deleteFilesWrapper } from "@utils/gcs.util"
+import { deleteFileFromS3, deleteFilesWrapper } from "@utils/s3.util"
 import mongoose, { Document, Schema } from "mongoose"
 import path from "path"
 import Restaurant from "./restaurant.model"
@@ -31,10 +31,10 @@ RestaurantSchema.post(
 
       // Loop through each restaurant and handle deletions
       for (const restaurant of restaurants) {
-        // 1. Delete restaurant's logo from GCS
+        // 1. Delete restaurant's logo from S3
         if (restaurant.logo) {
           const oldLogoFileName = path.basename(restaurant.logo)
-          await deleteFileFromGCS(`restaurants/${oldLogoFileName}`)
+          await deleteFileFromS3(`restaurants/${oldLogoFileName}`)
         }
 
         // 2. Delete associated locations
@@ -53,17 +53,14 @@ const deletedRestaurantsMap = new Map<string, IRestaurant[]>()
 
 // Utility function to remove references
 const removeReferences = async (restaurantsIds: string[]) => {
-  // Remove theri locations (locations is key inside restaurant model)
+  // Clear locations array from restaurants (locations are managed separately)
   await Restaurant.updateMany(
     { _id: { $in: restaurantsIds } },
-    { $pull: { locations: { $in: restaurantsIds } } }
+    { $set: { locations: [] } }
   )
 
-  // Remove the recommendations for the restaurants
-  await Recommendation.updateMany(
-    { restaurant: { $in: restaurantsIds } },
-    { $pull: { recommendations: { $in: restaurantsIds } } }
-  )
+  // Note: Recommendations are deleted via cascade in the post hook, not here
+  // This function is for cleanup before the actual deletion
 }
 
 // Pre hook for deleteMany

@@ -1,77 +1,145 @@
 import Location from "@models/location.model"
 import { Request, Response } from "express"
 
+const getCollectionName = (field: string): string => {
+  if (field === "restaurant") return "restaurants"
+  if (field === "recommendations") return "recommendations"
+  return field
+}
+
+const buildResponse = (locations: any[], totalLocations: number, pageNumber: number, pageSize: number) => {
+  return {
+    data: locations,
+    pagination: {
+      total: totalLocations,
+      currentPage: pageNumber,
+      pageSize,
+      totalPages: Math.ceil(totalLocations / pageSize)
+    },
+    message: "Locations fetched successfully"
+  }
+}
+
 export const getAllLocations = async (req: Request, res: Response) => {
-  const { page = 1, perPage = 10, minLat, minLng, maxLat, maxLng } = req.query
+  const {
+    page = 1,
+    perPage = 10,
+    sortBy,
+    sortOrder = "asc",
+    populate,
+    name,
+    _id,
+    restaurantId
+  } = req.query as {
+    page?: number
+    perPage?: number
+    sortBy?: string
+    sortOrder?: string
+    populate?: string
+    name?: string
+    _id?: string
+    restaurantId?: string
+  }
 
   try {
     const pageNumber = +page
     const pageSize = +perPage
 
-    // Bounding box coordinates for geospatial filtering
-    const boundingBox = [
-      [parseFloat(minLng as string), parseFloat(minLat as string)], // Bottom-left corner [lng, lat]
-      [parseFloat(maxLng as string), parseFloat(maxLat as string)] // Top-right corner [lng, lat]
-    ]
+    // Build filter object
+    const filter: { [key: string]: any } = {}
+    const idRegex = _id ? { $regex: _id, $options: "i" } : undefined
+    if (name) filter.name = { $regex: name, $options: "i" }
+    if (restaurantId) filter.restaurant = restaurantId
 
-    // Query with geospatial filtering and pagination
-    const locationsQuery = Location.aggregate([
-      {
-        $match: {
-          coordinates: {
-            $geoWithin: {
-              $box: boundingBox
+    // Use aggregation pipeline if ID regex is needed (for partial ObjectId matching)
+    if (idRegex) {
+      const pipeline: any[] = [
+        { $addFields: { _idStr: { $toString: "$_id" } } },
+        { $match: { ...filter, _idStr: idRegex } }
+      ]
+
+      // Apply sorting
+      if (sortBy) {
+        pipeline.push({
+          $sort: { [sortBy]: sortOrder === "asc" ? 1 : -1 }
+        })
+      }
+
+      // Apply pagination
+      pipeline.push(
+        { $skip: (pageNumber - 1) * pageSize },
+        { $limit: pageSize }
+      )
+
+      // Apply population using $lookup
+      if (populate) {
+        populate.split(",").forEach(field => {
+          const trimmedField = field.trim()
+          const collectionName = getCollectionName(trimmedField)
+          pipeline.push({
+            $lookup: {
+              from: collectionName,
+              localField: trimmedField,
+              foreignField: "_id",
+              as: trimmedField
             }
+          })
+          // Unwind if single reference (not array)
+          if (trimmedField === "restaurant") {
+            pipeline.push({ $unwind: { path: `$${trimmedField}`, preserveNullAndEmptyArrays: true } })
           }
-        }
-      },
-      {
-        $lookup: {
-          from: "recommendations",
-          localField: "_id",
-          foreignField: "locations",
-          as: "recommendations"
-        }
-      },
-      {
-        $match: {
-          "recommendations.0": { $exists: true } // Ensures locations with at least one recommendation
-        }
-      },
-      {
-        $project: {
-          name: 1,
-          address: 1,
-          coordinates: 1,
-          recommendations: 1
-        }
-      },
-      { $skip: (pageNumber - 1) * pageSize },
-      { $limit: pageSize }
+        })
+      }
+
+      // Remove _idStr field from output
+      pipeline.push({ $project: { _idStr: 0 } })
+
+      const [locations, totalLocations] = await Promise.all([
+        Location.aggregate(pipeline),
+        Location.aggregate([
+          { $addFields: { _idStr: { $toString: "$_id" } } },
+          { $match: { ...filter, _idStr: idRegex } },
+          { $count: "total" }
+        ]).then(result => result[0]?.total || 0)
+      ])
+
+      return res.status(200).json(buildResponse(locations, totalLocations, pageNumber, pageSize))
+    }
+
+    // Standard query approach for non-regex ID filtering
+    if (_id) filter._id = _id
+
+    // Build query
+    let query = Location.find(filter)
+
+    // Apply sorting
+    if (sortBy) {
+      query = query.sort({ [sortBy]: sortOrder === "asc" ? "asc" : "desc" })
+    }
+
+    // Apply pagination
+    query = query.skip((pageNumber - 1) * pageSize).limit(pageSize)
+
+    // Apply population
+    if (populate) {
+      populate.split(",").forEach(field => {
+        query = query.populate(field.trim()) as unknown as typeof query
+      })
+    }
+
+    // Execute query
+    const [locations, totalLocations] = await Promise.all([
+      query.exec(),
+      Location.countDocuments(filter)
     ])
 
-    const locations = await locationsQuery.exec()
-    const totalLocations = await Location.countDocuments({
-      coordinates: {
-        $geoWithin: {
-          $box: boundingBox
-        }
-      }
-    })
+    res.status(200).json(buildResponse(locations, totalLocations, pageNumber, pageSize))
 
-    res.status(200).json({
-      data: locations,
-      pagination: {
-        total: totalLocations,
-        currentPage: pageNumber,
-        pageSize
-      },
-      message: "Locations with recommendations fetched successfully"
-    })
   } catch (error) {
+    console.error("Error fetching locations:", error)
     res.status(500).json({
-      error,
-      message: "Failed to fetch locations with recommendations"
+      message: "Failed to fetch locations",
+      error: process.env.NODE_ENV === "development" ? error : undefined
     })
   }
 }

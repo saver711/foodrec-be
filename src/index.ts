@@ -11,6 +11,7 @@ import authRoutes from "@routes/auth.routes"
 import bloggerRoutes from "@routes/blogger.routes"
 import categoryRoutes from "@routes/category.routes"
 import dashboardUserRoutes from "@routes/dashboard-user-management.routes"
+import dashboardRoutes from "@routes/dashboard.routes"
 import locationRoutes from "@routes/location.routes"
 import recommendationRoutes from "@routes/recommendation.routes"
 import restaurantRoutes from "@routes/restaurant.routes"
@@ -28,6 +29,9 @@ app.use(express.json())
 
 // dashboard-users routes
 app.use("/api/dashboard-users", dashboardUserRoutes)
+
+// dashboard routes
+app.use("/api/dashboard", dashboardRoutes)
 
 // app-users routes
 app.use("/api/app-users", appUserRoutes)
@@ -54,8 +58,8 @@ app.use("/api/categories", categoryRoutes)
 connectDB()
 
 // Start the server
-const PORT = process.env.PORT || "5000"
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 5000
+app.listen(PORT as number, '0.0.0.0',() => {
   console.log(`Server running on port ${PORT}`)
 })
 

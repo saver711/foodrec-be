@@ -2,7 +2,7 @@ import { ErrorCode } from "@models/api/error-code.enum"
 import Location from "@models/location.model"
 import { ILocation } from "@models/location.model"
 import Restaurant from "@models/restaurant.model"
-import { uploadFileToGCS } from "@utils/gcs.util"
+import { uploadFileToS3 } from "@utils/s3.util"
 import { Request, Response } from "express"
 
 // Type for location data
@@ -41,7 +41,7 @@ export const createRestaurant = async (req: Request, res: Response) => {
     // Upload logo if provided
     let logoUrl = ""
     if (file) {
-      logoUrl = await uploadFileToGCS(file, "restaurants")
+      logoUrl = await uploadFileToS3(file, "restaurants")
     }
 
     // Create restaurant

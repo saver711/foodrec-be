@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import AppUser from "@models/app-user.model"
 import Blogger from "@models/blogger.model"
 import { ErrorCode } from "@models/api/error-code.enum"
-import { deleteFileFromGCS } from "@utils/gcs.util" // Utility function for deleting files from GCS
+import { deleteFileFromS3 } from "@utils/s3.util"
 import path from "path"
 
 // Delete App User
@@ -19,10 +19,10 @@ export const deleteAppUser = async (req: Request, res: Response) => {
       })
     }
 
-    // Delete the user's profile image from GCS (if they have one)
+    // Delete the user's profile image from S3 (if they have one)
     if (user.image) {
       const oldImageFileName = path.basename(user.image)
-      await deleteFileFromGCS(`app-users/${oldImageFileName}`)
+      await deleteFileFromS3(`app-users/${oldImageFileName}`)
     }
 
     // Remove the user from the followers list of bloggers they follow

@@ -1,10 +1,14 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import Location from "@models/location.model"
 import Recommendation from "@models/recommendation.model"
-import { deleteFilesFromGCS, uploadFilesToGCS } from "@utils/gcs.util"
+import {
+  deleteFilesFromS3,
+  uploadFilesToS3,
+  compareMultipleFilesWithS3
+} from "@utils/s3.util"
 import { Request, Response } from "express"
 import mongoose from "mongoose"
-import path from "path"
+import path from "node:path"
 
 export const updateRecommendation = async (req: Request, res: Response) => {
   const { id } = req.params
@@ -36,7 +40,9 @@ export const updateRecommendation = async (req: Request, res: Response) => {
     // Update recommendation fields
     recommendation.blogger = bloggerId
     recommendation.quote = quote
-    recommendation.rating = rating
+    // Handle rating - it might come as array from frontend, extract first element
+    const ratingValue = Array.isArray(rating) ? rating[0] : rating
+    recommendation.rating = ratingValue !== undefined && ratingValue !== null ? Number(ratingValue) : undefined
     recommendation.date = date
     recommendation.url = url
     recommendation.mealName = mealName
@@ -48,18 +54,44 @@ export const updateRecommendation = async (req: Request, res: Response) => {
 
     // Handle meal images update
     if (files?.length) {
+      const oldMealImages = recommendation.mealImages || []
+      
+      // Compare uploaded files with existing files in S3
+      const {
+        filesToKeep,
+        filesToUpload,
+        filesToDelete
+      } = await compareMultipleFilesWithS3(
+        files,
+        oldMealImages,
+        "recommendations"
+      )
+
+      // Delete old files that don't match any uploaded file
+      if (filesToDelete.length > 0) {
+        const fileNamesToDelete = filesToDelete.map(img =>
+          path.basename(img)
+        )
+        await deleteFilesFromS3(fileNamesToDelete, "recommendations")
+      }
+
+      // Upload new files that don't match existing files
+      let newImageUrls: string[] = []
+      if (filesToUpload.length > 0) {
+        newImageUrls = await uploadFilesToS3(filesToUpload, "recommendations")
+      }
+
+      // Combine kept files and newly uploaded files
+      recommendation.mealImages = [...filesToKeep, ...newImageUrls]
+    } else if (
+      recommendation.mealImages &&
+      recommendation.mealImages.length > 0
+    ) {
+      // No files uploaded - delete all old images if they exist
       const oldMealImages = recommendation.mealImages
       const fileNames = oldMealImages.map(img => path.basename(img))
-      await deleteFilesFromGCS(fileNames, "recommendations")
-
-      const uploadedImages = await uploadFilesToGCS(files, "recommendations")
-      recommendation.mealImages = uploadedImages
-    } else {
-      // TODO: Enable after fixing google cloud storage
-      // const oldMealImages = recommendation.mealImages
-      // const fileNames = oldMealImages.map(img => path.basename(img))
-      // await deleteFilesFromGCS(fileNames, "recommendations")
-      // recommendation.mealImages = []
+      await deleteFilesFromS3(fileNames, "recommendations")
+      recommendation.mealImages = []
     }
 
     await recommendation.save()

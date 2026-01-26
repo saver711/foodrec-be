@@ -1,10 +1,12 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import Blogger from "@models/blogger.model"
-import Recommendation from "@models/recommendation.model"
-import { deleteFileFromGCS, uploadFileToGCS } from "@utils/gcs.util" // Assume these functions are created
+import {
+  deleteFileFromS3,
+  uploadFileToS3,
+  isFileSameAsS3
+} from "@utils/s3.util"
 import { NextFunction, Request, Response } from "express"
-import path from "path"
-import mongoose from "mongoose"
+import path from "node:path"
 
 export const updateBlogger = async (
   req: Request,
@@ -25,26 +27,39 @@ export const updateBlogger = async (
       })
     }
 
-    // If there's a new image file, delete the old image from GCS and upload the new one
-    let imageUrl = blogger.image // Keep the current image URL
-    if (file) {
-      if (blogger.image) {
-        // Extract the filename from the current image URL
-        const oldImageFileName = path.basename(blogger.image)
-        // Delete the old image from GCS
-        await deleteFileFromGCS(`bloggers/${oldImageFileName}`)
-      }
-
-      // Upload the new image to GCS
-      imageUrl = await uploadFileToGCS(file, "bloggers")
-    }
-
     // Update the blogger details
     blogger.name = name || blogger.name
     blogger.bio = bio || blogger.bio
     blogger.socialLinks = socialLinks || blogger.socialLinks
     blogger.followers = followers || blogger.followers
-    blogger.image = imageUrl // Update with the new image URL
+
+    // Handle image update
+    if (file) {
+      // File is uploaded
+      if (blogger.image) {
+        // Check if uploaded file is the same as existing one
+        const oldImageFileName = path.basename(blogger.image)
+        const s3FilePath = `bloggers/${oldImageFileName}`
+        const isSameFile = await isFileSameAsS3(file, s3FilePath)
+
+        if (!isSameFile) {
+          // Files are different - delete old one and upload new one
+          await deleteFileFromS3(s3FilePath)
+          const imageUrl = await uploadFileToS3(file, "bloggers")
+          blogger.image = imageUrl
+        }
+        // If files are the same, do nothing (keep existing image)
+      } else {
+        // No existing image - just upload new one
+        const imageUrl = await uploadFileToS3(file, "bloggers")
+        blogger.image = imageUrl
+      }
+    } else if (blogger.image) {
+      // No file uploaded - delete old image if it exists
+      const oldImageFileName = path.basename(blogger.image)
+      await deleteFileFromS3(`bloggers/${oldImageFileName}`)
+      blogger.image = ""
+    }
 
     // Save the updated blogger
     await blogger.save()

@@ -5,7 +5,7 @@ import Location from "@models/location.model"
 import { LocationsCriteria } from "@models/locations/locations-criteria.enum"
 import Recommendation from "@models/recommendation.model"
 import Restaurant from "@models/restaurant.model"
-import { uploadFilesToGCS } from "@utils/gcs.util"
+import { uploadFilesToS3 } from "@utils/s3.util"
 import { Request, Response } from "express"
 import mongoose from "mongoose"
 import { MAX_RATING, MIN_RATING } from "src/consts/min-max-rating"
@@ -36,6 +36,14 @@ export const createRecommendation = async (req: Request, res: Response) => {
       return res.status(400).json({
         message: `Rating must be between ${MIN_RATING} and ${MAX_RATING}`,
         errorCode: ErrorCode.INVALID_RATING
+      })
+    }
+
+    // Validate date
+    if (!date) {
+      return res.status(400).json({
+        message: "Date is required",
+        errorCode: ErrorCode.INVALID_DATE
       })
     }
 
@@ -130,7 +138,7 @@ export const createRecommendation = async (req: Request, res: Response) => {
 
     // Upload images
     const uploadedImages = files?.length
-      ? await uploadFilesToGCS(files, "recommendations")
+      ? await uploadFilesToS3(files, "recommendations")
       : []
 
     // Create recommendation

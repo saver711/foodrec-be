@@ -11,6 +11,7 @@ export interface IAppUser extends Document {
   otp?: string // For phone-based OTP verification
   isVerified: boolean // Indicates whether the user is verified
   following: mongoose.Types.ObjectId[] // Following bloggers
+  favorites: mongoose.Types.ObjectId[] // Favorite recommendations
   role: UserRole.APP_USER
 }
 
@@ -24,10 +25,14 @@ const AppUserSchema: Schema = new Schema({
   otp: { type: String }, // Store OTP for phone verification
   isVerified: { type: Boolean, default: false }, // Default not verified unless verified via OTP or Google
   following: [{ type: Schema.Types.ObjectId, ref: "Blogger" }], // User follows many bloggers
+  favorites: [{ type: Schema.Types.ObjectId, ref: "Recommendation" }], // User's favorite recommendations
   role: {
     type: String,
     default: UserRole.APP_USER
   }
 })
+
+// Add index on favorites for query performance
+AppUserSchema.index({ favorites: 1 })
 
 export default mongoose.model<IAppUser>("AppUser", AppUserSchema)

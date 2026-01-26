@@ -2,10 +2,13 @@ import { ErrorCode } from "@models/api/error-code.enum"
 import Restaurant from "@models/restaurant.model"
 import Location from "@models/location.model"
 import Recommendation from "@models/recommendation.model"
-import { deleteFileFromGCS, uploadFileToGCS } from "@utils/gcs.util" // Import the GCS utility functions
+import {
+  deleteFileFromS3,
+  uploadFileToS3,
+  isFileSameAsS3
+} from "@utils/s3.util"
 import { Request, Response } from "express"
-import mongoose from "mongoose"
-import path from "path"
+import path from "node:path"
 
 // Update a restaurant by ID
 export const updateRestaurant = async (req: Request, res: Response) => {
@@ -86,15 +89,32 @@ export const updateRestaurant = async (req: Request, res: Response) => {
         { $set: { restaurant: restaurant._id } } // Update the restaurant reference
       )
     }
-    // Upload new logo if provided
-    let logoUrl = restaurant.logo
+    // Handle logo update
     if (file) {
+      // File is uploaded
       if (restaurant.logo) {
-        // Extract the filename from the current logo URL
+        // Check if uploaded file is the same as existing one
+        const oldLogoFileName = path.basename(restaurant.logo)
+        const s3FilePath = `restaurants/${oldLogoFileName}`
+        const isSameFile = await isFileSameAsS3(file, s3FilePath)
+
+        if (!isSameFile) {
+          // Files are different - delete old one and upload new one
+          await deleteFileFromS3(s3FilePath)
+          const logoUrl = await uploadFileToS3(file, "restaurants")
+          restaurant.logo = logoUrl
+        }
+        // If files are the same, do nothing (keep existing logo)
+      } else {
+        // No existing logo - just upload new one
+        const logoUrl = await uploadFileToS3(file, "restaurants")
+        restaurant.logo = logoUrl
       }
-      // Upload new logo
-      const logoUrl = await uploadFileToGCS(file, "restaurants")
-      restaurant.logo = logoUrl
+    } else if (restaurant.logo) {
+      // No file uploaded - delete old logo if it exists
+      const oldLogoFileName = path.basename(restaurant.logo)
+      await deleteFileFromS3(`restaurants/${oldLogoFileName}`)
+      restaurant.logo = ""
     }
 
     await restaurant.save()

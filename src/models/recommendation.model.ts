@@ -1,4 +1,4 @@
-import { deleteFilesFromGCS, deleteFilesWrapper } from "@utils/gcs.util"
+import { deleteFilesFromS3, deleteFilesWrapper } from "@utils/s3.util"
 import mongoose, { Document, Schema } from "mongoose"
 import Blogger from "./blogger.model"
 import Category from "./category.model"

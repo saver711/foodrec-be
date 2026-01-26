@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken"
+import jwt, { SignOptions } from "jsonwebtoken"
 import RefreshToken from "../models/refresh-token.model"
 import { DashboardUserRole, UserRole } from "../models/user-role.enum"
 import { UserType } from "@models/user-type.enum"
@@ -14,7 +14,7 @@ export const generateAccessToken = (
     process.env.JWT_SECRET as string,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "1h"
-    }
+    } as SignOptions
   )
 }
 
@@ -29,7 +29,7 @@ export const generateRefreshToken = async (
     process.env.JWT_SECRET as string,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d"
-    }
+    } as SignOptions
   )
 
   const expiryDate = new Date()

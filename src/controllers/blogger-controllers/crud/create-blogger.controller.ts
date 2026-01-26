@@ -1,6 +1,6 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import Blogger, { IBlogger } from "@models/blogger.model"
-import { uploadFileToGCS } from "@utils/gcs.util"
+import { uploadFileToS3 } from "@utils/s3.util"
 import { Request, Response } from "express"
 
 export const createBlogger = async (req: Request, res: Response) => {
@@ -19,7 +19,7 @@ export const createBlogger = async (req: Request, res: Response) => {
     let imageUrl = ""
     const imageFile = req.file
     if (imageFile) {
-      imageUrl = await uploadFileToGCS(imageFile, "bloggers") // Specify folder
+      imageUrl = await uploadFileToS3(imageFile, "bloggers") // Specify folder
     }
 
     // Create a new blogger with the image URL

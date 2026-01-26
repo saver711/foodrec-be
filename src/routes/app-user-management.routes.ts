@@ -9,9 +9,12 @@ import { getAllAppUsers } from "@controllers/app-user-controllers/crud/get-all-a
 import { getAppUserById } from "@controllers/app-user-controllers/crud/get-app-user-by-id"
 import { toggleFollowBlogger } from "@controllers/app-user-controllers/crud/toggle-follow-blogger"
 import { updateAppUser } from "@controllers/app-user-controllers/crud/update-app-user.controller"
+import { addFavorite } from "@controllers/app-user-controllers/favorites/add-favorite.controller"
+import { removeFavorite } from "@controllers/app-user-controllers/favorites/remove-favorite.controller"
+import { getFavorites } from "@controllers/app-user-controllers/favorites/get-favorites.controller"
 import { authenticate, authorizeUser } from "@middlewares/auth.middleware"
 import { UserRole } from "@models/user-role.enum"
-import { upload } from "@utils/gcs.util"
+import { upload } from "@utils/s3.util"
 import express, { NextFunction, Request, Response } from "express"
 const router = express.Router()
 
@@ -111,6 +114,187 @@ router.post(
   },
   (req: Request, res: Response, next: NextFunction) => {
     toggleFollowBlogger(req, res)
+  }
+)
+
+// Favorites routes
+/**
+ * @swagger
+ * /app-users/{userId}/favorites/{recommendationId}:
+ *   post:
+ *     summary: Add a recommendation to user's favorites
+ *     description: Adds a recommendation to the authenticated user's favorites list
+ *     tags:
+ *       - APP_USERS
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: path
+ *         name: recommendationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Recommendation ID to add to favorites
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Recommendation added to favorites successfully
+ *       400:
+ *         description: Recommendation already in favorites
+ *       403:
+ *         description: Forbidden - can only modify own favorites
+ *       404:
+ *         description: User or recommendation not found
+ */
+router.post(
+  "/:userId/favorites/:recommendationId",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next)
+  },
+  (req: Request, res: Response, next: NextFunction) => {
+    authorizeUser([UserRole.APP_USER])(req, res, next)
+  },
+  (req: Request, res: Response, next: NextFunction) => {
+    addFavorite(req, res, next)
+  }
+)
+
+/**
+ * @swagger
+ * /app-users/{userId}/favorites/{recommendationId}:
+ *   delete:
+ *     summary: Remove a recommendation from user's favorites
+ *     description: Removes a recommendation from the authenticated user's favorites list
+ *     tags:
+ *       - APP_USERS
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: path
+ *         name: recommendationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Recommendation ID to remove from favorites
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Recommendation removed from favorites successfully
+ *       400:
+ *         description: Recommendation not in favorites
+ *       403:
+ *         description: Forbidden - can only modify own favorites
+ *       404:
+ *         description: User or recommendation not found
+ */
+router.delete(
+  "/:userId/favorites/:recommendationId",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next)
+  },
+  (req: Request, res: Response, next: NextFunction) => {
+    authorizeUser([UserRole.APP_USER])(req, res, next)
+  },
+  (req: Request, res: Response, next: NextFunction) => {
+    removeFavorite(req, res, next)
+  }
+)
+
+/**
+ * @swagger
+ * /app-users/{userId}/favorites:
+ *   get:
+ *     summary: Get user's favorite recommendations
+ *     description: Retrieves all favorite recommendations for the authenticated user with pagination and filtering
+ *     tags:
+ *       - APP_USERS
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: perPage
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           default: date
+ *         description: Field to sort by
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
+ *       - in: query
+ *         name: populate
+ *         schema:
+ *           type: string
+ *         description: Comma-separated fields to populate (blogger,restaurant,categories,locations)
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Favorites retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/definitions/Recommendation'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     currentPage:
+ *                       type: integer
+ *                     pageSize:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *       403:
+ *         description: Forbidden - can only view own favorites
+ *       404:
+ *         description: User not found
+ */
+router.get(
+  "/:userId/favorites",
+  (req: Request, res: Response, next: NextFunction) => {
+    authenticate(req, res, next)
+  },
+  (req: Request, res: Response, next: NextFunction) => {
+    authorizeUser([UserRole.APP_USER])(req, res, next)
+  },
+  (req: Request, res: Response, next: NextFunction) => {
+    getFavorites(req, res, next)
   }
 )
 

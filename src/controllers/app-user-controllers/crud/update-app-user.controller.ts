@@ -1,6 +1,6 @@
 import { ErrorCode } from "@models/api/error-code.enum"
 import AppUser from "@models/app-user.model"
-import { deleteFileFromGCS, uploadFileToGCS } from "@utils/gcs.util" // Import GCS utility functions
+import { deleteFileFromS3, uploadFileToS3 } from "@utils/s3.util"
 import { Request, Response } from "express"
 import path from "path"
 import { egyptianPhoneRegex } from "src/consts/egyptian-phone-regex"
@@ -55,10 +55,10 @@ export const updateAppUser = async (req: Request, res: Response) => {
     if (file) {
       if (user.image) {
         const oldImageFileName = path.basename(user.image)
-        await deleteFileFromGCS(`app-users/${oldImageFileName}`)
+        await deleteFileFromS3(`app-users/${oldImageFileName}`)
       }
 
-      imageUrl = await uploadFileToGCS(file, "app-users")
+      imageUrl = await uploadFileToS3(file, "app-users")
     }
 
     user.image = imageUrl

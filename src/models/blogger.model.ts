@@ -1,5 +1,5 @@
 import Recommendation from "@models/recommendation.model"
-import { deleteFileFromGCS } from "@utils/gcs.util"
+import { deleteFileFromS3 } from "@utils/s3.util"
 import mongoose, { CallbackError, Document, Schema } from "mongoose"
 import path from "path"
 
@@ -39,10 +39,10 @@ BloggerSchema.post(
 
       // Loop through each blogger and handle deletions
       for (const blogger of bloggers) {
-        // 1. Delete blogger's image from GCS
+        // 1. Delete blogger's image from S3
         if (blogger.image) {
           const oldImageFileName = path.basename(blogger.image)
-          await deleteFileFromGCS(`bloggers/${oldImageFileName}`)
+          await deleteFileFromS3(`bloggers/${oldImageFileName}`)
         }
 
         // 2. Find and delete all recommendations associated with the blogger

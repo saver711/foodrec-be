@@ -39,16 +39,16 @@ router.delete(
 // Get all categories, with sorting by number of recommendations
 router.get(
   "/",
-  (req: Request, res: Response, next: NextFunction) => {
-    authenticate(req, res, next)
-  },
-  (req: Request, res: Response, next: NextFunction) => {
-    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
-      req,
-      res,
-      next
-    )
-  },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authenticate(req, res, next)
+  // },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+  //     req,
+  //     res,
+  //     next
+  //   )
+  // },
   (req: Request, res: Response, next: NextFunction) => {
     getAllCategories(req, res)
   }
@@ -75,16 +75,16 @@ router.put(
 // Get a category by ID
 router.get(
   "/:id",
-  (req: Request, res: Response, next: NextFunction) => {
-    authenticate(req, res, next)
-  },
-  (req: Request, res: Response, next: NextFunction) => {
-    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
-      req,
-      res,
-      next
-    )
-  },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authenticate(req, res, next)
+  // },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+  //     req,
+  //     res,
+  //     next
+  //   )
+  // },
   (req: Request, res: Response, next: NextFunction) => {
     getCategoryById(req, res)
   }

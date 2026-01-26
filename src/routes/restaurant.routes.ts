@@ -5,7 +5,7 @@ import { getAllRestaurants } from "@controllers/restaurant-controllers/crud/get-
 import { getRestaurantsByIds } from "@controllers/restaurant-controllers/crud/get-restaurants-by-ids.controller"
 import { updateRestaurant } from "@controllers/restaurant-controllers/crud/update-restaurant.controller"
 import { UserRole } from "@models/user-role.enum"
-import { upload } from "@utils/gcs.util"
+import { upload } from "@utils/s3.util"
 import express, { NextFunction, Request, Response } from "express"
 import { authenticate, authorizeUser } from "../middlewares/auth.middleware"
 import { getRestaurantById } from "@controllers/restaurant-controllers/get-restaurant-by-id.controller"
@@ -30,16 +30,16 @@ router.post(
 // Get all restaurants (SUPER_ADMIN & AUDITOR)
 router.get(
   "/",
-  (req: Request, res: Response, next: NextFunction) => {
-    authenticate(req, res, next)
-  },
-  (req: Request, res: Response, next: NextFunction) => {
-    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
-      req,
-      res,
-      next
-    )
-  },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authenticate(req, res, next)
+  // },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+  //     req,
+  //     res,
+  //     next
+  //   )
+  // },
   (req: Request, res: Response, next: NextFunction) => {
     getAllRestaurants(req, res)
   }
@@ -48,16 +48,16 @@ router.get(
 // Get Restaurant by id
 router.get(
   "/:id",
-  (req: Request, res: Response, next: NextFunction) => {
-    authenticate(req, res, next)
-  },
-  (req: Request, res: Response, next: NextFunction) => {
-    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
-      req,
-      res,
-      next
-    )
-  },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authenticate(req, res, next)
+  // },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+  //     req,
+  //     res,
+  //     next
+  //   )
+  // },
   (req: Request, res: Response, next: NextFunction) => {
     getRestaurantById(req, res)
   }
@@ -123,16 +123,16 @@ router.delete(
 // Get Restaurant by id
 router.post(
   "/restaurantsIds",
-  (req: Request, res: Response, next: NextFunction) => {
-    authenticate(req, res, next)
-  },
-  (req: Request, res: Response, next: NextFunction) => {
-    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
-      req,
-      res,
-      next
-    )
-  },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authenticate(req, res, next)
+  // },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+  //     req,
+  //     res,
+  //     next
+  //   )
+  // },
   (req: Request, res: Response, next: NextFunction) => {
     getRestaurantsByIds(req, res)
   }

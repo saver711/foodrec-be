@@ -4,7 +4,7 @@ import { getAllBloggers } from "@controllers/blogger-controllers/crud/get-all-bl
 import { getBloggersByIds } from "@controllers/blogger-controllers/crud/get-bloggers-by-ids.controller"
 import { updateBlogger } from "@controllers/blogger-controllers/crud/update-blogger.controller"
 import { UserRole } from "@models/user-role.enum"
-import { upload } from "@utils/gcs.util"
+import { upload } from "@utils/s3.util"
 import express, { NextFunction, Request, Response } from "express"
 import { authenticate, authorizeUser } from "../middlewares/auth.middleware"
 
@@ -28,16 +28,16 @@ router.post(
 // Get all bloggers (SUPER_ADMIN & AUDITOR)
 router.get(
   "/",
-  (req: Request, res: Response, next: NextFunction) => {
-    authenticate(req, res, next)
-  },
-  (req: Request, res: Response, next: NextFunction) => {
-    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
-      req,
-      res,
-      next
-    )
-  },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authenticate(req, res, next)
+  // },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+  //     req,
+  //     res,
+  //     next
+  //   )
+  // },
   getAllBloggers
 )
 
@@ -71,16 +71,16 @@ router.delete(
 )
 router.post(
   "/bloggersIds",
-  (req: Request, res: Response, next: NextFunction) => {
-    authenticate(req, res, next)
-  },
-  (req: Request, res: Response, next: NextFunction) => {
-    authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
-      req,
-      res,
-      next
-    )
-  },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authenticate(req, res, next)
+  // },
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   authorizeUser([UserRole.SUPER_ADMIN, UserRole.AUDITOR, UserRole.APP_USER])(
+  //     req,
+  //     res,
+  //     next
+  //   )
+  // },
   (req: Request, res: Response, next: NextFunction) => {
     getBloggersByIds(req, res)
   }

@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import jwt from "jsonwebtoken"
+import jwt, { SignOptions } from "jsonwebtoken"
 import { ErrorCode } from "../../models/api/error-code.enum"
 import RefreshToken from "../../models/refresh-token.model"
 
@@ -61,7 +61,9 @@ export const refreshToken = async (req: Request, res: Response) => {
     const newAccessToken = jwt.sign(
       { userId, role, userType },
       process.env.JWT_SECRET as string,
-      { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "1h" }
+      {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "1h"
+      } as SignOptions
     )
 
     // Set the access token in the HTTP-only cookies
